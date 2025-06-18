@@ -1,0 +1,13 @@
+{
+  "name": "vue-deps-analyzer",
+  "version": "0.1.0",
+  "dependencies": {
+    "@vue/compiler-sfc": "^3.4.0",
+    "@babel/parser": "^7.24.0",
+    "@babel/traverse": "^7.24.0",
+    "postcss": "^8.4.34",
+    "postcss-value-parser": "^4.2.0",
+    "htmlparser2": "^9.0.0",
+    "enhanced-resolve": "^5.15.0"
+  }
+}
