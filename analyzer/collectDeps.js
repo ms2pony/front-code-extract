@@ -10,7 +10,7 @@ module.exports = async function collectDeps(entry, projectRoot) {
   resetResolver();
   const seen = new Set();
   const stack = [path.resolve(entry)];
-  console.log(stack)
+  // console.log("collectDeps - stack",stack)
   while (stack.length) {
     const file = stack.pop();
     if (seen.has(file)) continue;

@@ -8,7 +8,7 @@ module.exports = async function parseCSS(code, ctx, stack) {
     root => {
       root.walkAtRules('import', rule => {
         const req = rule.params.replace(/['"]/g, '').split(/\s|url/)[0];
-        push(req, ctx, stack);
+        push(req, ctx, stack, 'css-import');
       });
       root.walkDecls(decl => {
         valueParser(decl.value).walk(node => {
@@ -18,5 +18,5 @@ module.exports = async function parseCSS(code, ctx, stack) {
         });
       });
     }
-  ]).process(code, { from: undefined });
+  ]).process(code, { from: undefined,syntax: require('postcss-scss')  });
 };

@@ -8,6 +8,8 @@ module.exports = function parseJS(code, ctx, stack) {
   const ast = babel.parse(code, { sourceType: 'unambiguous', plugins: ['typescript', 'jsx'] });
   traverse(ast, {
     ImportDeclaration({ node }) {
+      // console.log("ImportDeclaration", node)
+      // return
       push(node.source.value, ctx, stack);
     },
     ExportNamedDeclaration({ node }) {

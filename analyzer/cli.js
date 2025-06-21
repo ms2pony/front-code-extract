@@ -15,5 +15,5 @@ const { setAliasRoot } = require('./resolve');
   setAliasRoot(projectRoot);
 
   const deps = await collectDeps(entry, projectRoot);
-  console.log(deps.join('\n'));
+  // console.log(deps.join('\n'));
 })();
