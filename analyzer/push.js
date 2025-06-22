@@ -15,7 +15,7 @@ module.exports = function push(request, ctx, stack, type) {
     if (judgeNodeModulesPath){
       // 记录但不添加到stack
       addResolution(result.originalRequest, result.matchedAlias, abs, ctx);
-      console.log(`🚫 过滤 node_modules: ${abs}`);
+      // console.log(`🚫 过滤 node_modules: ${abs}`);
       return;
     }
 

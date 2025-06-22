@@ -22,8 +22,8 @@ module.exports = {
     '@pcds': 'src/modules/pcds',
     '@print': 'src/modules/print',
     '@shb': 'src/modules/shb',
-    '@workflow': 'src/modules/workflow',
     '@workflow/assets': 'src/modules/workflow/src/assets',
+    '@workflow': 'src/modules/workflow',
 
     // 从federation转换的app模块alias
     '@app/router/router': 'src/router/router',
@@ -154,6 +154,7 @@ module.exports = {
     '@common/common/tracking': 'src/modules/common/src/common/tracking',
     '@common/common/gt/gt-wrapper': 'src/modules/common/src/common/gt/gt-wrapper',
     '@common/common/aliyunAWSC/index.js': 'src/modules/common/src/common/aliyunAWSC/index.js',
+    '@common/comps': 'src/modules/common/src/comps',
     '@common/comps/GoTo': 'src/modules/common/src/comps/GoTo',
     '@common/comps/LoginError': 'src/modules/common/src/comps/LoginError',
     '@common/comps/PayModal': 'src/modules/common/src/comps/PayModal',

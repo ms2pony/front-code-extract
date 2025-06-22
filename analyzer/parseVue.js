@@ -1,11 +1,9 @@
 
 const { parse } = require('@vue/compiler-sfc');
-const html = require('htmlparser2');
 const parse5 = require('parse5');
 const parseJS = require('./parseJS');
 const parseCSS = require('./parseCSS');
 const push = require('./push');
-const { processStyleBlock } = require('./utils/processStyleBlock');
 
 module.exports = async function parseVue(code, ctx, stack) {
   const { descriptor } = parse(code);
@@ -47,21 +45,20 @@ module.exports = async function parseVue(code, ctx, stack) {
 
     fragment.childNodes.forEach(walk);
 
-    // collect.forEach(req => {
-    //   if (
-    //     req.startsWith('javascript:') ||
-    //     req.startsWith('#') ||
-    //     req.startsWith('mailto:')
-    //   ) return; // ❌ 忽略非资源引用
-    //   push(req, ctx, stack);
-    // });
+    collect.forEach(req => {
+      if (
+        req.startsWith('javascript:') ||
+        req.startsWith('#') ||
+        req.startsWith('mailto:')
+      ) return; // ❌ 忽略非资源引用
+      push(req, ctx, stack);
+    });
   }
 
   // styles
   for (const style of descriptor.styles) {
     // scssCode = style.content.replace(/@import\s+["']~(.*?)["']/g, '@import "$1"');
 
-    // const compiledCSS = await processStyleBlock(scssCode, style.lang || 'scss');
     await parseCSS(style.content, ctx, stack);
   }
 };

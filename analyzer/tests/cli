@@ -1,0 +1,13 @@
+node cli.js J:\ifs-eui\src\modules\common\src\extension\index.js J:\ifs-eui ./output
+
+
+
+node create-project.js K:\front-code-extract\analyzer\output\eui-pay-edit-part
+
+node create-project.js K:\front-code-extract\analyzer\output\eui-portal
+node create-project.js K:\front-code-extract\analyzer\output\eui-store-app
+
+
+node merge-projects.js K:\front-code-extract\analyzer\output\eui-pay-edit-part K:\front-code-extract\analyzer\output\eui-portal
+node merge-projects.js K:\front-code-extract\analyzer\output\eui-pay-edit-part K:\front-code-extract\analyzer\output\eui-store-app
+

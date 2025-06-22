@@ -13,6 +13,42 @@ if (args.length === 0) {
 const newProjectPath = args[0];
 const fileListPath = path.join(__dirname, '..', 'output', 'file-list.txt');
 
+// 递归删除目录
+function removeDirectory(dirPath) {
+  try {
+    if (fs.existsSync(dirPath)) {
+      const items = fs.readdirSync(dirPath);
+      
+      items.forEach(item => {
+        const itemPath = path.join(dirPath, item);
+        if (fs.statSync(itemPath).isDirectory()) {
+          removeDirectory(itemPath);
+        } else {
+          fs.unlinkSync(itemPath);
+        }
+      });
+      
+      fs.rmdirSync(dirPath);
+      console.log(`🗑️ 已删除目录: ${dirPath}`);
+    }
+  } catch (error) {
+    console.error(`✗ 删除目录失败: ${dirPath} - ${error.message}`);
+    throw error;
+  }
+}
+
+// 检查并清理目标目录
+function cleanTargetDirectory(targetPath) {
+  if (fs.existsSync(targetPath)) {
+    console.log(`⚠️ 目标目录已存在: ${targetPath}`);
+    console.log('🧹 正在清理目标目录...');
+    removeDirectory(targetPath);
+    console.log('✅ 目标目录清理完成');
+  } else {
+    console.log('✅ 目标目录不存在，无需清理');
+  }
+}
+
 // 确保新项目目录存在
 function ensureDir(dirPath) {
   if (!fs.existsSync(dirPath)) {
@@ -59,6 +95,35 @@ function copyDirectory(src, dest) {
   }
 }
 
+// 复制目录下的文件（不包含子目录）
+function copyDirectoryFilesOnly(src, dest) {
+  try {
+    if (!fs.existsSync(src)) {
+      console.warn(`⚠ 目录不存在: ${src}`);
+      return;
+    }
+    
+    ensureDir(dest);
+    const items = fs.readdirSync(src);
+    
+    let copiedCount = 0;
+    items.forEach(item => {
+      const srcPath = path.join(src, item);
+      const destPath = path.join(dest, item);
+      
+      // 只复制文件，跳过目录
+      if (fs.statSync(srcPath).isFile()) {
+        copyFile(srcPath, destPath);
+        copiedCount++;
+      }
+    });
+    
+    console.log(`✓ 复制目录文件: ${src} -> ${dest} (${copiedCount} 个文件)`);
+  } catch (error) {
+    console.error(`✗ 复制目录文件失败: ${src} - ${error.message}`);
+  }
+}
+
 // 从文件列表中提取原项目根路径
 function getOriginalProjectRoot() {
   try {
@@ -84,6 +149,14 @@ function getOriginalProjectRoot() {
 function main() {
   console.log('🚀 开始创建新项目...');
   console.log(`新项目路径: ${newProjectPath}`);
+  
+  // 检查并清理目标目录
+  try {
+    cleanTargetDirectory(newProjectPath);
+  } catch (error) {
+    console.error('清理目标目录失败，程序终止');
+    process.exit(1);
+  }
   
   // 获取原项目根路径
   const originalProjectRoot = getOriginalProjectRoot();
@@ -120,7 +193,13 @@ function main() {
   const routerDest = path.join(newProjectPath, 'src', 'router');
   copyDirectory(routerSrc, routerDest);
   
-  // 4. 根据文件列表复制相关文件
+  // 4. 复制 src 目录下的所有文件（不包含子文件夹）
+  console.log('\n📄 复制 src 目录下的文件...');
+  const srcDir = path.join(originalProjectRoot, 'src');
+  const destSrcDir = path.join(newProjectPath, 'src');
+  copyDirectoryFilesOnly(srcDir, destSrcDir);
+  
+  // 5. 根据文件列表复制相关文件
   console.log('\n📄 根据文件列表复制文件...');
   try {
     const fileList = fs.readFileSync(fileListPath, 'utf8');

@@ -30,10 +30,10 @@ function addResolution(originalRequest, matchedAlias, resolvedPath, ctx) {
     const alias = matchedAlias.alias;
     resolveStats.aliasMatches.set(alias, (resolveStats.aliasMatches.get(alias) || 0) + 1);
     
-    console.log(`🎯 Alias匹配: '${originalRequest}' -> '${alias}' (${matchedAlias.target})`);
-    console.log(`   解析结果: ${resolvedPath}`);
+    // console.log(`🎯 Alias匹配: '${originalRequest}' -> '${alias}' (${matchedAlias.target})`);
+    // console.log(`   解析结果: ${resolvedPath}`);
   } else {
-    console.log(`📁 相对路径: '${originalRequest}' -> ${resolvedPath}`);
+    // console.log(`📁 相对路径: '${originalRequest}' -> ${resolvedPath}`);
   }
 }
 

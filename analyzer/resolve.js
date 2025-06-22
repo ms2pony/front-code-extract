@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { ResolverFactory, CachedInputFileSystem } = require("enhanced-resolve");
-const resolverConfig = require("./resolver-config");
+const resolverConfig = require("./config/resolver");
 
 let aliasRoot = process.cwd();
 
@@ -64,6 +64,7 @@ function resolvePath(ctx, request, type) {
         !cleaned.startsWith("/") &&
         !cleaned.includes("@");
         cleaned = needsDotSlash ? "./" + cleaned : cleaned;
+        // console.log("css-import",cleaned,ctx)
     }
 
     const resolvedPath = resolver.resolveSync({}, ctx, cleaned);

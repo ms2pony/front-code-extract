@@ -16,6 +16,7 @@ module.exports = async function collectDeps(entry, projectRoot) {
   
   while (stack.length) {
     const file = stack.pop();
+    // console.log("collectDeps-while: file ->",file,path.dirname(file))
     if (seen.has(file)) continue;
     seen.add(file);
 
@@ -31,7 +32,7 @@ module.exports = async function collectDeps(entry, projectRoot) {
     switch (ext) {
       case '.vue': await parseVue(code, ctx, stack); break;
       case '.js':
-      case '.ts':  parseJS(code, ctx, stack); break;
+      case '.ts':  parseJS(code, ctx, stack, file); break;
       case '.css':
       case '.less':
       case '.scss': await parseCSS(code, ctx, stack); break;
