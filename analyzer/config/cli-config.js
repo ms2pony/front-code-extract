@@ -5,28 +5,62 @@ const PROJECT_ROOT = path.resolve(__dirname, '../');
 
 // 原始配置对象
 const config = {
-  // 入口文件路径，直接写相对路径即可（相对于项目根目录）
-  // 示例: "sample-app/src/main.js" 会自动解析为绝对路径
-  entryFile: "J:\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js ",
+  // 入口文件路径，支持字符串或数组
+  entryFile: [
+    "J:\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js",
+    "J:\\ifs-eui\\src\\modules\\common\\src\\layout\\portal\\index.vue"
+  ],
   
-  // 项目根目录，直接写相对路径即可（相对于项目根目录）
-  // 示例: "sample-app" 会自动解析为绝对路径
+  // 项目根目录
   projectRoot: "J:\\ifs-eui",
   
   // 输出目录，直接写相对路径即可（相对于项目根目录）
   // 示例: "output" 会自动解析为绝对路径
-  outputDir: "output"
+  outputDir: "output",
+
+  mergeOption:{
+    // 新项目
+    srcProjectPath:'',
+    // 老项目
+    targetProjectPath:'',
+    dropIfExists:false,
+  },
+
+  // 得到依赖关系后是重新创建新项目还是合并到老项目 1-重新创建 2-合并到老项目
+  secondCreateOrMerge: 2,
+
+  createOption:{
+    // 新项目路径
+    targetProjectPath:'',
+  }
 };
 
 // 自动转换相对路径为绝对路径的处理函数
 function resolveConfig(config) {
   const resolved = {};
   for (const [key, value] of Object.entries(config)) {
-    const trimmedValue = value.trim();
-    if (typeof trimmedValue === 'string' && trimmedValue && !path.isAbsolute(trimmedValue)) {
-      resolved[key] = path.resolve(PROJECT_ROOT, trimmedValue);
+    if (Array.isArray(value)) {
+      // 处理数组类型的配置项
+      resolved[key] = value.map(item => {
+        if (typeof item === 'string' && item) {
+          const trimmedValue = item.trim();
+          if (!path.isAbsolute(trimmedValue)) {
+            return path.resolve(PROJECT_ROOT, trimmedValue);
+          }
+          return trimmedValue;
+        }
+        return item;
+      });
+    } else if (typeof value === 'string' && value) {
+      // 处理字符串类型的配置项
+      const trimmedValue = value.trim();
+      if (!path.isAbsolute(trimmedValue)) {
+        resolved[key] = path.resolve(PROJECT_ROOT, trimmedValue);
+      } else {
+        resolved[key] = trimmedValue;
+      }
     } else {
-      resolved[key] = trimmedValue;
+      resolved[key] = value;
     }
   }
   return resolved;

@@ -26,9 +26,9 @@ function loadConfig() {
   const config = loadConfig();
   
   // 优先使用命令行参数，其次使用配置文件，最后使用默认值
-  const entryFile = entryArg || config.entryFile;
+  let entryFile = entryArg || config.entryFile;
   
-  if (!entryFile) {
+  if (!entryFile || (Array.isArray(entryFile) && entryFile.length === 0)) {
     console.error('❌ 缺少入口文件参数!');
     console.error('\n使用方法:');
     console.error('  1. 命令行参数: node cli.js <entry-file> [project-root] [output-dir]');
@@ -44,13 +44,28 @@ function loadConfig() {
     process.exit(1);
   }
   
-  const entry = path.resolve(entryFile);
-  const projectRoot = rootArg || config.projectRoot || path.dirname(entry);
+  // 确保entryFile是数组格式
+  if (!Array.isArray(entryFile)) {
+    entryFile = [entryFile];
+  }
+  
+  // 解析所有入口文件为绝对路径
+  const entries = entryFile.map(file => path.resolve(file));
+  
+  // 使用第一个入口文件的目录作为默认项目根目录
+  const projectRoot = rootArg || config.projectRoot || path.dirname(entries[0]);
   const outputDir = outputArg || config.outputDir || path.join(process.cwd(), 'output');
   
   // 显示使用的配置
   console.log('📋 使用配置:');
-  console.log(`  入口文件: ${entryFile} ${entryArg ? '(命令行)' : '(配置文件)'}`);
+  if (entries.length === 1) {
+    console.log(`  入口文件: ${entries[0]} ${entryArg ? '(命令行)' : '(配置文件)'}`);
+  } else {
+    console.log(`  入口文件: ${entries.length}个文件 ${entryArg ? '(命令行)' : '(配置文件)'}`);
+    entries.forEach((entry, index) => {
+      console.log(`    ${index + 1}. ${entry}`);
+    });
+  }
   console.log(`  项目根目录: ${projectRoot} ${rootArg ? '(命令行)' : config.projectRoot ? '(配置文件)' : '(默认)'}`);
   console.log(`  输出目录: ${outputDir} ${outputArg ? '(命令行)' : config.outputDir ? '(配置文件)' : '(默认)'}`);
   console.log('');
@@ -58,12 +73,12 @@ function loadConfig() {
   setAliasRoot(path.resolve(projectRoot));
 
   console.log('🔍 开始分析依赖...');
-  const result = await collectDeps(entry, path.resolve(projectRoot));
+  const result = await collectDeps(entries, path.resolve(projectRoot));
   const deps = result.dependencies;
   const aliasStats = result.aliasStats;
   
   console.log('📊 生成报告...');
-  const report = generateReport(deps, entry, path.resolve(projectRoot), aliasStats);
+  const report = generateReport(deps, entries, path.resolve(projectRoot), aliasStats);
   
   console.log('💾 输出到文件...');
   const outputPaths = outputToFiles(report, path.resolve(outputDir));

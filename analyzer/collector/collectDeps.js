@@ -7,12 +7,17 @@ const parseCSS = require('../parsers/parseCSS');
 const { resetResolver } = require('../resolve');
 const { resetStats, printStats, resolveStats } = require('../stats/resolve-stats');
 
-module.exports = async function collectDeps(entry, projectRoot) {
+module.exports = async function collectDeps(entries, projectRoot) {
   resetResolver();
   resetStats(); // 重置统计信息
   
   const seen = new Set();
-  const stack = [path.resolve(entry)];
+  
+  // 支持单个入口文件或多个入口文件
+  const entryArray = Array.isArray(entries) ? entries : [entries];
+  
+  // 将所有入口文件添加到栈中
+  const stack = entryArray.map(entry => path.resolve(entry));
   
   while (stack.length) {
     const file = stack.pop();

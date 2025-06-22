@@ -96,16 +96,22 @@ function getFileStats(deps) {
   return stats;
 }
 
-// 生成报告内容
-function generateReport(deps, entry, projectRoot, aliasStats = null) {
+// 生成报告内容 - 修改为支持多入口文件
+function generateReport(deps, entries, projectRoot, aliasStats = null) {
   const stats = getFileStats(deps);
   const tree = generateFileTree(deps, projectRoot);
   const treeString = renderTree(tree);
   
+  // 确保entries是数组格式
+  const entryArray = Array.isArray(entries) ? entries : [entries];
+  
   const report = {
     summary: {
       projectRoot: projectRoot,
-      entryFile: path.relative(projectRoot, entry),
+      entryFiles: entryArray.map(entry => ({
+        absolute: entry,
+        relative: path.relative(projectRoot, entry)
+      })),
       totalFiles: stats.total,
       analysisTime: new Date().toISOString()
     },
@@ -113,7 +119,7 @@ function generateReport(deps, entry, projectRoot, aliasStats = null) {
       total: stats.total,
       byType: stats.byType
     },
-    // 新增alias统计
+    // alias统计
     aliasStatistics: aliasStats ? {
       totalResolutions: aliasStats.totalResolutions,
       failedResolutions: aliasStats.failedResolutions,
@@ -157,15 +163,24 @@ function outputToFiles(report, outputDir) {
   };
 }
 
-// 生成文本格式报告
-// 生成文本格式报告
+// 生成文本格式报告 - 修改为支持多入口文件
 function generateTextReport(report) {
   let text = '';
   
   text += '📊 项目依赖分析报告\n';
   text += '='.repeat(50) + '\n';
   text += `📁 项目根目录: ${report.summary.projectRoot}\n`;
-  text += `🎯 入口文件: ${report.summary.entryFile}\n`;
+  
+  // 处理多入口文件显示
+  if (report.summary.entryFiles.length === 1) {
+    text += `🎯 入口文件: ${report.summary.entryFiles[0].relative}\n`;
+  } else {
+    text += `🎯 入口文件: ${report.summary.entryFiles.length}个\n`;
+    report.summary.entryFiles.forEach((entry, index) => {
+      text += `   ${index + 1}. ${entry.relative}\n`;
+    });
+  }
+  
   text += `📈 总依赖文件数: ${report.summary.totalFiles}\n`;
   text += `⏰ 分析时间: ${report.summary.analysisTime}\n\n`;
   
@@ -178,7 +193,7 @@ function generateTextReport(report) {
       text += `  ${icon} ${typeName}: ${count} 个\n`;
     });
   
-  // 新增alias统计部分
+  // alias统计部分
   if (report.aliasStatistics) {
     text += '\n🎯 Alias解析统计:\n';
     text += `📊 总解析次数: ${report.aliasStatistics.totalResolutions}\n`;
@@ -187,7 +202,6 @@ function generateTextReport(report) {
     
     if (Object.keys(report.aliasStatistics.aliasUsage).length > 0) {
       text += '📈 Alias使用频率排行:\n';
-      // 按使用次数降序排列
       const sortedAliases = Object.entries(report.aliasStatistics.aliasUsage)
         .sort(([,a], [,b]) => b - a);
       
