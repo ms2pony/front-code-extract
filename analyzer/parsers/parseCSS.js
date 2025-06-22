@@ -1,7 +1,7 @@
 
 const postcss = require('postcss');
 const valueParser = require('postcss-value-parser');
-const push = require('./push');
+const push = require('../collector/push');
 const path = require("path");
 const fs = require("fs");
 

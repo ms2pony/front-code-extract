@@ -3,7 +3,7 @@ const { parse } = require('@vue/compiler-sfc');
 const parse5 = require('parse5');
 const parseJS = require('./parseJS');
 const parseCSS = require('./parseCSS');
-const push = require('./push');
+const push = require('../collector/push');
 
 module.exports = async function parseVue(code, ctx, stack) {
   const { descriptor } = parse(code);

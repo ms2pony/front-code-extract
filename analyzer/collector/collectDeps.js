@@ -1,11 +1,11 @@
 
 const fs = require('fs');
 const path = require('path');
-const parseVue = require('./parseVue');
-const parseJS = require('./parseJS');
-const parseCSS = require('./parseCSS');
-const { resetResolver } = require('./resolve');
-const { resetStats, printStats, resolveStats } = require('./resolve-stats');
+const parseVue = require('../parsers/parseVue');
+const parseJS = require('../parsers/parseJS');
+const parseCSS = require('../parsers/parseCSS');
+const { resetResolver } = require('../resolve');
+const { resetStats, printStats, resolveStats } = require('../stats/resolve-stats');
 
 module.exports = async function collectDeps(entry, projectRoot) {
   resetResolver();

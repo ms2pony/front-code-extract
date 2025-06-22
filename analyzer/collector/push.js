@@ -1,5 +1,5 @@
-const { resolvePath } = require('./resolve');
-const { addResolution, addFailedResolution } = require('./resolve-stats');
+const { resolvePath } = require('../resolve');
+const { addResolution, addFailedResolution } = require('../stats/resolve-stats');
 
 module.exports = function push(request, ctx, stack, type) {
   try {

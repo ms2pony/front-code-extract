@@ -1,9 +1,9 @@
 
 // #!/usr/bin/env node
 const path = require('path');
-const collectDeps = require('../collectDeps');
+const collectDeps = require('../collector/collectDeps');
 const { setAliasRoot } = require('../resolve');
-const { generateReport, outputToFiles } = require('../output');
+const { generateReport, outputToFiles } = require('../stats/output');
 
 (async () => {
   const [,, entryArg, rootArg, outputArg] = process.argv;

@@ -1,7 +1,7 @@
 
 const babel = require('@babel/parser');
 const traverse = require('@babel/traverse').default;
-const push = require('./push');
+const push = require('../collector/push');
 const path = require('path')
 
 module.exports = function parseJS(code, ctx, stack, file) {
