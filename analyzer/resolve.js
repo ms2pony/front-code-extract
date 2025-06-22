@@ -1,5 +1,5 @@
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
 const { ResolverFactory, CachedInputFileSystem } = require("enhanced-resolve");
 const resolverConfig = require("./resolver-config");
 
@@ -26,26 +26,60 @@ function createResolver() {
   });
 }
 
+// 新增函数：检测请求匹配的alias
+function detectMatchedAlias(request) {
+  const aliases = Object.keys(resolverConfig.alias);
+  
+  // 按长度降序排序，优先匹配更具体的alias
+  const sortedAliases = aliases.sort((a, b) => b.length - a.length);
+  
+  for (const aliasKey of sortedAliases) {
+    if (request.startsWith(aliasKey)) {
+      // 检查是否是完整匹配（避免 @app 匹配到 @app/xxx 的情况）
+      const nextChar = request[aliasKey.length];
+      if (!nextChar || nextChar === '/' || nextChar === '\\') {
+        return {
+          alias: aliasKey,
+          target: resolverConfig.alias[aliasKey],
+          fullTarget: path.join(aliasRoot, resolverConfig.alias[aliasKey])
+        };
+      }
+    }
+  }
+  
+  return null;
+}
+
 function resolvePath(ctx, request, type) {
-  // console.log("resolvePath - ", ctx, request);
-
   try {
-    const cleaned = request.startsWith("~") ? request.slice(1) : request;
+    let cleaned = request.startsWith("~") ? request.slice(1) : request;
 
-    // 如果是裸文件名或类似 'dialogForm.scss' 这种，不是绝对路径、不是别名、不是 ./../ 开头
-    const needsDotSlash =
-      !cleaned.startsWith(".") &&
-      !cleaned.startsWith("/") &&
-      !cleaned.includes("@");
-    const req = needsDotSlash ? "./" + cleaned : cleaned;
+    // 检测匹配的alias
+    const matchedAlias = detectMatchedAlias(cleaned);
 
-    const resolvedPath = resolver.resolveSync({}, ctx, type==='css-import' ? req : cleaned);
-    // console.log("resolvePath - resolved:", resolvedPath);
-    return resolvedPath;
+    // 如果是css代码，裸文件名或类似 'dialogForm.scss' 这种，不是绝对路径、不是别名、不是 ./../ 开头
+    if(type === 'css-import'){
+      const needsDotSlash =
+        !cleaned.startsWith(".") &&
+        !cleaned.startsWith("/") &&
+        !cleaned.includes("@");
+        cleaned = needsDotSlash ? "./" + cleaned : cleaned;
+    }
+
+    const resolvedPath = resolver.resolveSync({}, ctx, cleaned);
+    
+    return {
+      resolvedPath,
+      matchedAlias,
+      originalRequest: request
+    };
   } catch (error) {
-    console.warn(`❌ Failed to resolve '${request}' from '${ctx}'`);
-    // 对于无法解析的模块，可以返回原始请求或null
-    return null;
+    return {
+      resolvedPath: null,
+      matchedAlias: null,
+      originalRequest: request,
+      error
+    };
   }
 }
 

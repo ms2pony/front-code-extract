@@ -97,7 +97,7 @@ function getFileStats(deps) {
 }
 
 // 生成报告内容
-function generateReport(deps, entry, projectRoot) {
+function generateReport(deps, entry, projectRoot, aliasStats = null) {
   const stats = getFileStats(deps);
   const tree = generateFileTree(deps, projectRoot);
   const treeString = renderTree(tree);
@@ -113,6 +113,14 @@ function generateReport(deps, entry, projectRoot) {
       total: stats.total,
       byType: stats.byType
     },
+    // 新增alias统计
+    aliasStatistics: aliasStats ? {
+      totalResolutions: aliasStats.totalResolutions,
+      failedResolutions: aliasStats.failedResolutions,
+      successRate: aliasStats.totalResolutions > 0 ? 
+        ((aliasStats.totalResolutions - aliasStats.failedResolutions) / aliasStats.totalResolutions * 100).toFixed(1) : '0',
+      aliasUsage: Object.fromEntries(aliasStats.aliasMatches || new Map())
+    } : null,
     fileTree: treeString,
     fileList: deps.map(dep => ({
       absolute: dep,
@@ -150,6 +158,7 @@ function outputToFiles(report, outputDir) {
 }
 
 // 生成文本格式报告
+// 生成文本格式报告
 function generateTextReport(report) {
   let text = '';
   
@@ -168,6 +177,27 @@ function generateTextReport(report) {
       const typeName = type === 'no-extension' ? '无扩展名' : type;
       text += `  ${icon} ${typeName}: ${count} 个\n`;
     });
+  
+  // 新增alias统计部分
+  if (report.aliasStatistics) {
+    text += '\n🎯 Alias解析统计:\n';
+    text += `📊 总解析次数: ${report.aliasStatistics.totalResolutions}\n`;
+    text += `❌ 失败次数: ${report.aliasStatistics.failedResolutions}\n`;
+    text += `✅ 成功率: ${report.aliasStatistics.successRate}%\n\n`;
+    
+    if (Object.keys(report.aliasStatistics.aliasUsage).length > 0) {
+      text += '📈 Alias使用频率排行:\n';
+      // 按使用次数降序排列
+      const sortedAliases = Object.entries(report.aliasStatistics.aliasUsage)
+        .sort(([,a], [,b]) => b - a);
+      
+      sortedAliases.forEach(([alias, count], index) => {
+        const rank = index + 1;
+        const medal = rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : '  ';
+        text += `  ${medal} ${alias}: ${count}次\n`;
+      });
+    }
+  }
   
   text += '\n🌳 文件树结构:\n';
   text += report.fileTree;

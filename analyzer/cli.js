@@ -20,10 +20,12 @@ const { generateReport, outputToFiles } = require('./output');
   setAliasRoot(projectRoot);
 
   console.log('🔍 开始分析依赖...');
-  const deps = await collectDeps(entry, projectRoot);
+  const result = await collectDeps(entry, projectRoot);
+  const deps = result.dependencies;
+  const aliasStats = result.aliasStats;
   
   console.log('📊 生成报告...');
-  const report = generateReport(deps, entry, projectRoot);
+  const report = generateReport(deps, entry, projectRoot,aliasStats);
   
   console.log('💾 输出到文件...');
   const outputPaths = outputToFiles(report, outputDir);

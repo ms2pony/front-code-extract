@@ -1,21 +1,29 @@
-const { resolvePath } = require("./resolve");
+const { resolvePath } = require('./resolve');
+const { addResolution, addFailedResolution } = require('./resolve-stats');
 
 module.exports = function push(request, ctx, stack, type) {
   try {
-    const abs = resolvePath(ctx, request, type);
-    // if (abs) stack.push(abs);
-    // console.log("在这里",abs)
+    const result = resolvePath(ctx, request, type);
+    
+    if (!result || !result.resolvedPath) {
+      addFailedResolution(request, ctx, result?.error);
+      return;
+    }
 
-    if (!abs) return;
-
+    const abs = result.resolvedPath;
     const judgeNodeModulesPath = abs.includes('node_modules');
     if (judgeNodeModulesPath){
-      // console.log("🚫 过滤 node_modules", abs);
-      return
-    };
+      // 记录但不添加到stack
+      addResolution(result.originalRequest, result.matchedAlias, abs, ctx);
+      console.log(`🚫 过滤 node_modules: ${abs}`);
+      return;
+    }
 
+    // 记录解析信息
+    addResolution(result.originalRequest, result.matchedAlias, abs, ctx);
+    
     stack.push(abs);
   } catch (e) {
-    console.warn("Unresolved:", request, "from", ctx);
+    addFailedResolution(request, ctx, e);
   }
 };

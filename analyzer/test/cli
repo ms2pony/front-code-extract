@@ -1,0 +1,4 @@
+node cli.js J:\ifs-eui\src\modules\tender\views\pay\purchaser-pay-edit.vue J:\ifs-eui ./output
+
+
+node create-project.js K:\front-code-extract\analyzer\output\eui-pay-edit-part
