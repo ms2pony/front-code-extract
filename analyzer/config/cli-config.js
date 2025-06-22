@@ -1,14 +1,20 @@
 const path = require('path');
 
+// 获取项目根目录（analyzer目录的上级目录）
+const PROJECT_ROOT = path.resolve(__dirname, '../');
+
 // 原始配置对象
 const config = {
-  // 入口文件路径 - 移除末尾空格
-  entryFile: "J:\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js",
+  // 入口文件路径，直接写相对路径即可（相对于项目根目录）
+  // 示例: "sample-app/src/main.js" 会自动解析为绝对路径
+  entryFile: "J:\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js ",
   
-  // 项目根目录
+  // 项目根目录，直接写相对路径即可（相对于项目根目录）
+  // 示例: "sample-app" 会自动解析为绝对路径
   projectRoot: "J:\\ifs-eui",
   
-  // 输出目录
+  // 输出目录，直接写相对路径即可（相对于项目根目录）
+  // 示例: "output" 会自动解析为绝对路径
   outputDir: "output"
 };
 
@@ -16,17 +22,11 @@ const config = {
 function resolveConfig(config) {
   const resolved = {};
   for (const [key, value] of Object.entries(config)) {
-    if (typeof value === 'string' && value) {
-      // 去除首尾空格
-      const trimmedValue = value.trim();
-      if (!path.isAbsolute(trimmedValue)) {
-        // 如果是相对路径，基于当前工作目录解析
-        resolved[key] = path.resolve(process.cwd(), trimmedValue);
-      } else {
-        resolved[key] = trimmedValue;
-      }
+    const trimmedValue = value.trim();
+    if (typeof trimmedValue === 'string' && trimmedValue && !path.isAbsolute(trimmedValue)) {
+      resolved[key] = path.resolve(PROJECT_ROOT, trimmedValue);
     } else {
-      resolved[key] = value;
+      resolved[key] = trimmedValue;
     }
   }
   return resolved;
