@@ -23,18 +23,6 @@ function loadConfig() {
 const args = process.argv.slice(2);
 const config = loadConfig();
 
-// 检测是否被其他进程调用
-const isCalledByProcess = () => {
-  const scriptPath = process.argv[1];
-  const isDirectRun = scriptPath.endsWith("merge-projects.js");
-  const isCalledByOtherScript =
-    !isDirectRun ||
-    process.argv.some((arg) => arg.includes("cli.js")) ||
-    process.env.npm_lifecycle_event ||
-    process.env.INIT_CWD;
-  return isCalledByOtherScript;
-};
-
 // 确定项目路径：命令行参数优先，其次是配置文件
 let projectAPath, projectBPath;
 
@@ -43,12 +31,10 @@ if (args.length >= 2) {
   projectBPath = path.resolve(args[1]);
   logger.debug("使用命令行参数指定的项目路径");
 } else if (config.targetProjectPath && config.srcProjectPath) {
-  projectAPath = path.resolve(config.targetProjectPath);
-  projectBPath = path.resolve(config.srcProjectPath);
+  projectAPath = path.resolve(config.srcProjectPath);
+  projectBPath = path.resolve(config.targetProjectPath);
   logger.debug("使用配置文件指定的项目路径");
 } else {
-  // if (isCalledByProcess()) {
-  // 简化的配置错误提示
   logger.configError(
     "合并项目",
     `请在配置文件中设置以下选项:
@@ -56,12 +42,11 @@ if (args.length >= 2) {
     targetProjectPath: "目标项目路径",
     srcProjectPath: "源项目路径"
   }
-配置文件位置: config/cli-config.js`
+配置文件位置: config/cli-config.js
+\n`
+//   logger.info('使用方法: node merge-projects.js <项目A路径-被合并的项目-目标项目> <项目B路径-准备合并到另一个项目的项目>');
+//   logger.info('或者在配置文件中设置 mergeOption 配置');
   );
-  // } else {
-  //   logger.info('使用方法: node merge-projects.js <项目A路径> <项目B路径>');
-  //   logger.info('或者在配置文件中设置 mergeOption 配置');
-  // }
   process.exit(1);
 }
 
@@ -156,7 +141,8 @@ function main() {
   const startTime = Date.now();
 
   // 开始合并
-  mergeDirectory(projectBPath, projectAPath, stats);
+  mergeDirectory(projectAPath, projectBPath, stats);
+  FileUtils.directory.remove(projectAPath)
 
   const endTime = Date.now();
   const duration = ((endTime - startTime) / 1000).toFixed(2);
