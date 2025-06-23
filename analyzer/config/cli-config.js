@@ -7,12 +7,12 @@ const PROJECT_ROOT = path.resolve(__dirname, '../');
 const config = {
   // 入口文件路径，支持字符串或数组
   entryFile: [
-    "J:\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js",
-    "J:\\ifs-eui\\src\\modules\\common\\src\\layout\\portal\\index.vue"
+    "J:\\gitlab\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js",
+    "J:\\gitlab\\ifs-eui\\src\\modules\\common\\src\\layout\\portal\\index.vue"
   ],
   
   // 项目根目录
-  projectRoot: "J:\\ifs-eui",
+  projectRoot: "J:\\gitlab\\ifs-eui",
   
   // 输出目录，直接写相对路径即可（相对于项目根目录）
   // 示例: "output" 会自动解析为绝对路径
@@ -26,7 +26,7 @@ const config = {
 
   },
 
-  // 得到依赖关系后是重新创建新项目还是合并到老项目 1-重新创建 2-合并到老项目
+  // 得到依赖关系后是重新创建新项目还是合并到老项目 1-重新创建 2-创建新项目然后再合并到老项目
   secondCreateOrMerge: 2,
 
   createOption:{
