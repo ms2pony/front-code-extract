@@ -19,10 +19,10 @@ const config = {
   outputDir: "output",
 
   mergeOption:{
-    // 新项目
-    srcProjectPath:'',
-    // 老项目
-    targetProjectPath:'',
+    // 新项目 - 待合并的项目
+    srcProjectPath:'K:\\front-code-extract\\analyzer\\output\\eui-pay-edit-part',
+    // dest - 目标项目
+    targetProjectPath:'K:\\front-code-extract\\analyzer\\output\\dest',
 
   },
 

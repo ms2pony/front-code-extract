@@ -4,7 +4,8 @@
  */
 
 const AliasMatcher = require('./alias-matcher');
-const AliasFileHandler = require('./alias-file-handler');
+const FileUtils = require('./file-utils');
+const path = require('path');
 
 class AliasProcessor {
   /**
@@ -24,16 +25,16 @@ class AliasProcessor {
       resolverPath,
       templatePath,
       outputPath,
-      reportOutputPath,
-      jsonOutputPath
+    //   reportOutputPath,
+    //   jsonOutputPath
     } = options;
 
     try {
       // 1. 读取数据
       console.log('正在读取数据文件...');
-      const aliasUsage = AliasFileHandler.getAliasUsageFromReport(reportPath);
-      const aliasDefinitions = AliasFileHandler.getAliasFromResolver(resolverPath);
-      const templateContent = AliasFileHandler.readTemplate(templatePath);
+      const aliasUsage = this.getAliasUsageFromReport(reportPath);
+      const aliasDefinitions = this.getAliasFromResolver(resolverPath);
+      const templateContent = FileUtils.file.read(templatePath);
 
       if (!templateContent) {
         throw new Error('模板文件读取失败');
@@ -57,17 +58,20 @@ class AliasProcessor {
       const vueConfigContent = AliasMatcher.generateVueConfig(templateContent, aliasConfig);
       
       // 5. 写入配置文件
-      AliasFileHandler.writeConfig(outputPath, vueConfigContent);
+      FileUtils.file.write(outputPath, vueConfigContent);
+      console.log(`配置文件已生成: ${outputPath}`);
       
       // 6. 生成报告（可选）
     //   if (reportOutputPath) {
     //     const report = AliasMatcher.generateReport(matchResult);
-    //     AliasFileHandler.writeReport(reportOutputPath, report);
+    //     FileUtils.file.write(reportOutputPath, report);
+    //     console.log(`匹配报告已生成: ${reportOutputPath}`);
     //   }
       
       // 7. 写入JSON结果（可选）
     //   if (jsonOutputPath) {
-    //     AliasFileHandler.writeMatchResultJson(jsonOutputPath, matchResult);
+    //     FileUtils.file.write(jsonOutputPath, JSON.stringify(matchResult, null, 2));
+    //     console.log(`匹配结果JSON已生成: ${jsonOutputPath}`);
     //   }
 
       console.log(`处理完成！匹配到 ${matchResult.length} 个别名`);
@@ -82,6 +86,40 @@ class AliasProcessor {
     } catch (error) {
       console.error('处理过程中发生错误:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * 从依赖报告中获取别名使用情况
+   * @param {string} reportPath - 依赖报告文件路径
+   * @returns {Object} - 别名使用情况对象
+   */
+  static getAliasUsageFromReport(reportPath) {
+    try {
+      const reportContent = FileUtils.file.read(reportPath);
+      const report = JSON.parse(reportContent);
+      return report.aliasStatistics?.aliasUsage || report.aliasUsage || {};
+    } catch (error) {
+      console.error('读取依赖报告失败:', error);
+      return {};
+    }
+  }
+
+  /**
+   * 从resolver配置中获取别名定义
+   * @param {string} resolverPath - resolver配置文件路径
+   * @returns {Object} - 别名定义对象
+   */
+  static getAliasFromResolver(resolverPath) {
+    try {
+      // 清除require缓存
+      const absolutePath = path.resolve(resolverPath);
+      delete require.cache[absolutePath];
+      const resolver = require(absolutePath);
+      return resolver.alias || {};
+    } catch (error) {
+      console.error('读取resolver配置失败:', error);
+      return {};
     }
   }
 }

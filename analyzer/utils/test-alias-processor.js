@@ -5,9 +5,10 @@
 
 const AliasProcessor = require('./alias-processor');
 const AliasMatcher = require('./alias-matcher');
-const AliasFileHandler = require('./alias-file-handler');
+// const AliasFileHandler = require('./alias-file-handler');
 const path = require('path');
 const fs = require('fs');
+const FileUtils = require('./file-utils');
 
 class AliasProcessorTest {
   /**
@@ -166,7 +167,7 @@ module.exports = {
     }
     
     try {
-      const templateContent = AliasFileHandler.readTemplate(templatePath);
+      const templateContent = FileUtils.file.read(templatePath);
       
       if (templateContent) {
         console.log('   ✓ 成功读取模板文件');

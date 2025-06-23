@@ -3,44 +3,7 @@
  * 用于匹配依赖报告中的别名使用情况与配置中的别名定义
  */
 
-const fs = require('fs');
-
 class AliasMatcher {
-  /**
-   * 从依赖报告中获取别名使用情况
-   * @param {string} reportPath - 依赖报告文件路径
-   * @returns {Object} - 别名使用情况对象
-   */
-  static getAliasUsageFromReport(reportPath) {
-    try {
-      const reportContent = fs.readFileSync(reportPath, 'utf-8');
-      const report = JSON.parse(reportContent);
-
-      console.log("getAliasUsageFromReport --- report", report)
-
-    //   return
-      return report.aliasStatistics.aliasUsage || {};
-    } catch (error) {
-      console.error('读取依赖报告失败:', error);
-      return {};
-    }
-  }
-
-  /**
-   * 从resolver配置中获取别名定义
-   * @param {string} resolverPath - resolver配置文件路径
-   * @returns {Object} - 别名定义对象
-   */
-  static getAliasFromResolver(resolverPath) {
-    try {
-      // 由于resolver.js是一个模块，我们需要直接引入它
-      const resolver = require(resolverPath);
-      return resolver.alias || {};
-    } catch (error) {
-      console.error('读取resolver配置失败:', error);
-      return {};
-    }
-  }
 
   /**
    * 匹配别名使用情况与别名定义（纯文本处理）
@@ -80,6 +43,10 @@ class AliasMatcher {
     }
 
     // 按精确度排序（路径越长越精确）
+    // * 因为enhanced-resolve尝试匹配第一个就不匹配后续的了
+    // * 且测试的项目，@module_name 和 @module_name/aa 的解析规则不一样
+    // * 分别是 xxx/modules/module_name 和 xxx/modules/module_name/src/aa
+    // * 后者多了一个src，所以别名路径@module_name/aa/xx无法匹配@module_name
     return result.sort((a, b) => {
       // 首先按照定义别名的深度排序（越深越精确）
       if (b.depth !== a.depth) {
