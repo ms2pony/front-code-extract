@@ -1,17 +1,50 @@
 const fs = require('fs');
 const path = require('path');
+const ConfigPath = require('../../config/config-path');
 const { execSync } = require('child_process');
 
-// 获取命令行参数
+// 加载配置文件
+function loadConfig() {
+  try {
+    const config = ConfigPath.loadConfig();
+    return config.createOption || {};
+  } catch (error) {
+    console.warn('⚠️ 无法加载配置文件，使用默认配置');
+    return {
+      targetProjectPath: '',
+      dropIfExists: false
+    };
+  }
+}
+
+// 获取命令行参数和配置
 const args = process.argv.slice(2);
-if (args.length === 0) {
-  console.log('使用方法: node create-project.js <新项目路径>');
+const config = loadConfig();
+
+// 确定新项目路径：命令行参数优先，其次是配置文件
+let newProjectPath;
+let fileListPath;
+
+if (args.length > 0) {
+  newProjectPath = args[0];
+  fileListPath = args[1] || path.join(__dirname, '..', 'output', 'file-list.txt');
+  console.log('📝 使用命令行参数指定的项目路径');
+} else if (config.targetProjectPath) {
+  newProjectPath = config.targetProjectPath;
+  console.log("----create newProjectPath",newProjectPath)
+  fileListPath = path.join(__dirname, '..', 'output', 'file-list.txt');
+  console.log('📝 使用配置文件指定的项目路径');
+} else {
+  console.log('使用方法: node create-project.js <新项目路径> [文件列表路径]');
   console.log('示例: node create-project.js D:\\new-project');
+  console.log('或者在配置文件中设置 targetProjectPath');
   process.exit(1);
 }
 
-const newProjectPath = args[0];
-const fileListPath = path.join(__dirname, '..', 'output', 'file-list.txt');
+// 获取 dropIfExists 配置
+const dropIfExists = config.dropIfExists || false;
+console.log(`🔧 目录存在时删除策略: ${dropIfExists ? '删除' : '不删除'}`);
+console.log(`📄 文件列表路径: ${fileListPath}`);
 
 // 递归删除目录
 function removeDirectory(dirPath) {
@@ -39,11 +72,19 @@ function removeDirectory(dirPath) {
 
 // 检查并清理目标目录
 function cleanTargetDirectory(targetPath) {
+  console.log("cleanTargetDirectory --- targetPath",targetPath)
   if (fs.existsSync(targetPath)) {
     console.log(`⚠️ 目标目录已存在: ${targetPath}`);
-    console.log('🧹 正在清理目标目录...');
-    removeDirectory(targetPath);
-    console.log('✅ 目标目录清理完成');
+    
+    if (dropIfExists) {
+      console.log('🧹 配置为删除已存在目录，正在清理...');
+      removeDirectory(targetPath);
+      console.log('✅ 目标目录清理完成');
+    } else {
+      console.log('❌ 配置为不删除已存在目录，程序终止');
+      console.log('提示: 可以设置 dropIfExists: true 来自动删除已存在的目录');
+      process.exit(1);
+    }
   } else {
     console.log('✅ 目标目录不存在，无需清理');
   }

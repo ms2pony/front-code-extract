@@ -1,17 +1,43 @@
 const fs = require('fs');
 const path = require('path');
+const ConfigPath = require('../../config/config-path');
 
-// 获取命令行参数
+// 加载配置文件
+function loadConfig() {
+  try {
+    const config = ConfigPath.loadConfig();
+    return config.mergeOption || {};
+  } catch (error) {
+    console.warn('⚠️ 无法加载配置文件，使用默认配置');
+    return {
+      srcProjectPath: '',
+      targetProjectPath: ''
+    };
+  }
+}
+
+// 获取命令行参数和配置
 const args = process.argv.slice(2);
-if (args.length !== 2) {
+const config = loadConfig();
+
+// 确定项目路径：命令行参数优先，其次是配置文件
+let projectAPath, projectBPath;
+
+if (args.length >= 2) {
+  projectAPath = path.resolve(args[0]);
+  projectBPath = path.resolve(args[1]);
+  console.log('📝 使用命令行参数指定的项目路径');
+} else if (config.targetProjectPath && config.srcProjectPath) {
+  projectAPath = path.resolve(config.targetProjectPath);
+  projectBPath = path.resolve(config.srcProjectPath);
+  console.log('📝 使用配置文件指定的项目路径');
+} else {
   console.log('使用方法: node merge-projects.js <项目A路径> <项目B路径>');
   console.log('示例: node merge-projects.js D:\\project-a D:\\project-b');
   console.log('说明: 将项目B的文件合并到项目A中，已存在的文件将被跳过');
+  console.log('或者在配置文件中设置 mergeOption.targetProjectPath 和 mergeOption.srcProjectPath');
   process.exit(1);
 }
-
-const projectAPath = path.resolve(args[0]);
-const projectBPath = path.resolve(args[1]);
 
 // 验证路径是否存在
 if (!fs.existsSync(projectAPath)) {

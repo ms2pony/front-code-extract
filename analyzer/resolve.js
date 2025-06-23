@@ -50,22 +50,12 @@ function detectMatchedAlias(request) {
   return null;
 }
 
-function resolvePath(ctx, request, type) {
+function resolvePath(ctx, request) {
   try {
     let cleaned = request.startsWith("~") ? request.slice(1) : request;
 
     // 检测匹配的alias
     const matchedAlias = detectMatchedAlias(cleaned);
-
-    // 如果是css代码，裸文件名或类似 'dialogForm.scss' 这种，不是绝对路径、不是别名、不是 ./../ 开头
-    if(type === 'css-import'){
-      const needsDotSlash =
-        !cleaned.startsWith(".") &&
-        !cleaned.startsWith("/") &&
-        !cleaned.includes("@");
-        cleaned = needsDotSlash ? "./" + cleaned : cleaned;
-        // console.log("css-import",cleaned,ctx)
-    }
 
     const resolvedPath = resolver.resolveSync({}, ctx, cleaned);
     

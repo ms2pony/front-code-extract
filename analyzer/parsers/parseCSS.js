@@ -46,7 +46,7 @@ module.exports = async function parseCSS(code, ctx, stack) {
       root.walkAtRules('import', rule => {
         const raw = rule.params.replace(/['"]/g, '').split(/\s|url/)[0];
         const cleaned = normalizeRequest(raw,ctx);
-        push(cleaned, ctx, stack, 'css-import');
+        push(cleaned, ctx, stack);
       });
       root.walkDecls(decl => {
         valueParser(decl.value).walk(node => {

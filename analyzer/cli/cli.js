@@ -5,20 +5,11 @@ const fs = require('fs');
 const collectDeps = require('../collector/collectDeps');
 const { setAliasRoot } = require('../resolve');
 const { generateReport, outputToFiles } = require('../stats/output');
+const ConfigPath = require('../config/config-path');
 
 // 读取配置文件
 function loadConfig() {
-  const configPath = path.join(__dirname, '../config/cli-config.js');
-  try {
-    if (fs.existsSync(configPath)) {
-      // 删除 require 缓存以确保每次都读取最新配置
-      delete require.cache[require.resolve('../config/cli-config.js')];
-      return require('../config/cli-config.js');
-    }
-  } catch (error) {
-    console.warn('⚠️ 配置文件读取失败，使用默认配置:', error.message);
-  }
-  return {};
+  return ConfigPath.loadConfig();
 }
 
 (async () => {
@@ -98,4 +89,42 @@ function loadConfig() {
       const typeName = type === 'no-extension' ? '无扩展名' : type;
       console.log(`  - ${typeName}: ${count} 个`);
     });
+  
+  // 根据配置执行后续操作
+  const secondCreateOrMerge = config.secondCreateOrMerge;
+  if (secondCreateOrMerge === 1 || secondCreateOrMerge === 2) {
+    console.log('\n🔄 执行后续操作...');
+    
+    // 执行 create-project.js
+    if (secondCreateOrMerge === 1) {
+      console.log('📦 开始创建新项目...');
+    } else {
+      console.log('📦 开始创建项目（准备合并）...');
+    }
+    
+    try {
+      const { execSync } = require('child_process');
+      const createProjectPath = path.join(__dirname, 'commands', 'create-project.js');
+      const fileListPath = outputPaths.listPath;
+      
+      // 调用 create-project.js，传入文件列表路径
+      const createCommand = `node "${createProjectPath}" "" "${fileListPath}"`;
+      console.log(`执行命令: ${createCommand}`);
+      execSync(createCommand, { stdio: 'inherit', cwd: __dirname });
+      
+      // 如果是合并模式，继续执行 merge-projects.js
+      if (secondCreateOrMerge === 2) {
+        console.log('\n🔀 开始合并项目...');
+        const mergeProjectPath = path.join(__dirname, 'commands', 'merge-projects.js');
+        const mergeCommand = `node "${mergeProjectPath}"`;
+        console.log(`执行命令: ${mergeCommand}`);
+        execSync(mergeCommand, { stdio: 'inherit', cwd: __dirname });
+      }
+      
+      console.log('\n🎉 所有操作完成!');
+    } catch (error) {
+      console.error('\n❌ 执行后续操作失败:', error.message);
+      process.exit(1);
+    }
+  }
 })();

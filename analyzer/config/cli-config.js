@@ -23,7 +23,7 @@ const config = {
     srcProjectPath:'',
     // 老项目
     targetProjectPath:'',
-    dropIfExists:false,
+
   },
 
   // 得到依赖关系后是重新创建新项目还是合并到老项目 1-重新创建 2-合并到老项目
@@ -31,7 +31,8 @@ const config = {
 
   createOption:{
     // 新项目路径
-    targetProjectPath:'',
+    targetProjectPath:'K:\\front-code-extract\\analyzer\\output\\eui-pay-edit-part',
+    dropIfExists:false,
   }
 };
 
