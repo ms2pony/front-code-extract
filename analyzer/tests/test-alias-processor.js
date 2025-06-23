@@ -3,12 +3,12 @@
  * 用于验证重构后的别名匹配功能
  */
 
-const AliasProcessor = require('./alias-processor');
-const AliasMatcher = require('./alias-matcher');
+const AliasProcessor = require('../hooks/alias');
+const AliasMatcher = require('../textproc/alias-proc');
 // const AliasFileHandler = require('./alias-file-handler');
 const path = require('path');
 const fs = require('fs');
-const FileUtils = require('./file-utils');
+const FileUtils = require('../utils/file-utils');
 
 class AliasProcessorTest {
   /**
@@ -158,7 +158,7 @@ module.exports = {
   static testVueConfigGeneration() {
     console.log('\n4. 测试Vue配置生成...');
     
-    const templatePath = path.resolve(__dirname, '../textops/template/vue.config.tpl.js');
+    const templatePath = path.resolve(__dirname, '../textproc/template/vue.config.tpl.js');
     
     // 检查模板文件是否存在
     if (!fs.existsSync(templatePath)) {
@@ -204,7 +204,7 @@ module.exports = {
     const testPaths = {
       reportPath: path.resolve(__dirname, '../output/dependency-report.json'),
       resolverPath: path.resolve(__dirname, '../config/resolver.js'),
-      templatePath: path.resolve(__dirname, '../textops/template/vue.config.tpl.js'),
+      templatePath: path.resolve(__dirname, '../textproc/template/vue.config.tpl.js'),
       outputPath: path.resolve(__dirname, '../output/test-vue.config.js'),
       reportOutputPath: path.resolve(__dirname, '../output/test-alias-report.txt'),
       jsonOutputPath: path.resolve(__dirname, '../output/test-alias-result.json')

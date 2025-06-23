@@ -3,8 +3,8 @@
  * 整合文件操作和文本处理功能
  */
 
-const AliasMatcher = require('./alias-matcher');
-const FileUtils = require('./file-utils');
+const AliasMatcher = require('../textproc/alias-proc');
+const FileUtils = require('../utils/file-utils');
 const path = require('path');
 
 class AliasProcessor {
