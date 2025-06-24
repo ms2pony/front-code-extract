@@ -1,9 +1,27 @@
 const { resolvePath } = require('../resolve');
 const { addResolution, addFailedResolution } = require('../stats/resolve-stats');
+const { routeTracker, RouteTracker } = require('../hooks/route-tracker');
 
-module.exports = function push(request, ctx, stack, type) {
+/**
+ * 
+ * @param {*} request 
+ * @param {*} ctx 
+ * @param {*} stack 
+ * @param {String} file 依赖引用出自的文件
+ * @returns 
+ */
+module.exports = function push(request, ctx, stack, file) {
   try {
-    const result = resolvePath(ctx, request, type);
+    const result = resolvePath(ctx, request);
+
+    // 1.这里解析result，如果依赖文件是路由文件，则溯源其引用文件
+    // 2.保存该依赖文件(路由文件)
+    
+    // 路由文件收集 hook
+    if (result && result.resolvedPath && RouteTracker.isRouteFile(result.resolvedPath)) {
+      // console.log(`📍 发现路由文件引用: ${file} -> ${result.resolvedPath}`);
+      routeTracker.addRouteReference(file, result.resolvedPath);
+    }
     
     if (!result || !result.resolvedPath) {
       addFailedResolution(request, ctx, result?.error);

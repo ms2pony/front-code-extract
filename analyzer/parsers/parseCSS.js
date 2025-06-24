@@ -40,20 +40,19 @@ function normalizeRequest(request, ctx) {
   return cleaned;
 }
 
-module.exports = async function parseCSS(code, ctx, stack) {
+module.exports = async function parseCSS(code, ctx, stack, file) {
   await postcss([
     root => {
       root.walkAtRules('import', rule => {
         const raw = rule.params.replace(/['"]/g, '').split(/\s|url/)[0];
         const cleaned = normalizeRequest(raw,ctx);
-        push(cleaned, ctx, stack);
+        push(cleaned, ctx, stack,file);
       });
       root.walkDecls(decl => {
         valueParser(decl.value).walk(node => {
           if (node.type === 'function' && node.value === 'url' && node.nodes && node.nodes[0]) {
-            // console.log("root.walkDecls -- request",node.nodes[0].value)
             const cleaned = normalizeRequest(node.nodes[0].value,ctx);
-            push(cleaned, ctx, stack);
+            push(cleaned, ctx, stack,file);
           }
         });
       });

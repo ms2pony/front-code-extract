@@ -5,27 +5,15 @@ const parseJS = require('./parseJS');
 const parseCSS = require('./parseCSS');
 const push = require('../collector/push');
 
-module.exports = async function parseVue(code, ctx, stack) {
+module.exports = async function parseVue(code, ctx, stack, file) {
   const { descriptor } = parse(code);
-
-  // console.log("parseVue", ctx)
-  // return
 
   // scripts
   const scripts = [descriptor.script?.content, descriptor.scriptSetup?.content].filter(Boolean).join('\n');
-  parseJS(scripts, ctx, stack);
+  parseJS(scripts, ctx, stack, file);
 
   // template
   if (descriptor.template) {
-    // const collect = [];
-    // const parser = new html.Parser({
-    //   onopentag(name, attrs) {
-    //     ['src', 'href'].forEach(k => attrs[k] && collect.push(attrs[k]));
-    //   }
-    // });
-    // parser.write(descriptor.template.content); parser.end();
-    // collect.forEach(req => push(req, ctx, stack));
-
     const fragment = parse5.parseFragment(descriptor.template.content);
     const collect = [];
 
@@ -51,14 +39,12 @@ module.exports = async function parseVue(code, ctx, stack) {
         req.startsWith('#') ||
         req.startsWith('mailto:')
       ) return; // ❌ 忽略非资源引用
-      push(req, ctx, stack);
+      push(req, ctx, stack,file);
     });
   }
 
   // styles
   for (const style of descriptor.styles) {
-    // scssCode = style.content.replace(/@import\s+["']~(.*?)["']/g, '@import "$1"');
-
     await parseCSS(style.content, ctx, stack);
   }
 };

@@ -6,8 +6,9 @@ const parseJS = require('../parsers/parseJS');
 const parseCSS = require('../parsers/parseCSS');
 const { resetResolver } = require('../resolve');
 const { resetStats, printStats, resolveStats } = require('../stats/resolve-stats');
+const { routeTracker } = require('../hooks/route-tracker');
 
-module.exports = async function collectDeps(entries, projectRoot) {
+module.exports = async function collectDeps(entries) {
   resetResolver();
   resetStats(); // 重置统计信息
   
@@ -21,10 +22,7 @@ module.exports = async function collectDeps(entries, projectRoot) {
   
   while (stack.length) {
     const file = stack.pop();
-    // console.log("collectDeps --- file",file, seen)
-    // console.log("collectDeps-while: file ->",file,path.dirname(file))
     if (seen.has(file)) continue;
-    // console.log("collectDeps --- 2")
 
     seen.add(file);
 
@@ -43,7 +41,6 @@ module.exports = async function collectDeps(entries, projectRoot) {
     let code;
     try {
       code = fs.readFileSync(file, 'utf8');
-      // console.log("collectDeps --- code",code)
     } catch(err) {
       console.log("collectDeps -> 文件读取失败：",err)
       continue;
@@ -51,12 +48,12 @@ module.exports = async function collectDeps(entries, projectRoot) {
     const ctx = path.dirname(file);
 
     switch (ext) {
-      case '.vue': await parseVue(code, ctx, stack); break;
+      case '.vue': await parseVue(code, ctx, stack,file); break;
       case '.js':
       case '.ts':  parseJS(code, ctx, stack, file); break;
       case '.css':
       case '.less':
-      case '.scss': await parseCSS(code, ctx, stack); break;
+      case '.scss': await parseCSS(code, ctx, stack,file); break;
       default:
         // 这里理论上不会执行到，因为上面已经过滤了
         break;
@@ -65,6 +62,26 @@ module.exports = async function collectDeps(entries, projectRoot) {
   
   // 输出解析统计
   printStats();
+  
+  // 输出路由依赖信息
+  const routeStats = routeTracker.getStats();
+  if (routeStats.totalSourceFiles > 0) {
+    console.log('\n📍 路由依赖统计:');
+    console.log(`  - 引用路由的文件数: ${routeStats.totalSourceFiles}`);
+    console.log(`  - 被引用的路由文件数: ${routeStats.totalRouteFiles}`);
+    console.log(`  - 总引用次数: ${routeStats.totalReferences}`);
+    
+    console.log('\n📍 详细路由引用关系:');
+    const allReferences = routeTracker.getAllRouteReferences();
+    for (const [sourceFile, routeFiles] of allReferences) {
+      console.log(`  ${sourceFile}:`);
+      routeFiles.forEach(routeFile => {
+        console.log(`    -> ${routeFile}`);
+      });
+    }
+  } else {
+    console.log('\n📍 未发现路由文件引用关系');
+  }
   
   // 返回依赖列表和统计信息
   return {
@@ -76,6 +93,3 @@ module.exports = async function collectDeps(entries, projectRoot) {
     }
   };
 };
-
-// 导出统计对象供push.js使用
-// module.exports.resolveStats = resolveStats;
