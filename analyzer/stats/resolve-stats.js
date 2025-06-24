@@ -48,16 +48,16 @@ function printStats() {
   console.log(`失败次数: ${resolveStats.failedResolutions}`);
   console.log(`成功率: ${((resolveStats.totalResolutions - resolveStats.failedResolutions) / resolveStats.totalResolutions * 100).toFixed(1)}%`);
   
-  if (resolveStats.aliasMatches.size > 0) {
-    console.log('\n🎯 Alias使用统计:');
-    // 按使用次数降序排列
-    const sortedAliases = [...resolveStats.aliasMatches.entries()]
-      .sort((a, b) => b[1] - a[1]);
+  // if (resolveStats.aliasMatches.size > 0) {
+  //   console.log('\n🎯 Alias使用统计:');
+  //   // 按使用次数降序排列
+  //   const sortedAliases = [...resolveStats.aliasMatches.entries()]
+  //     .sort((a, b) => b[1] - a[1]);
     
-    for (const [alias, count] of sortedAliases) {
-      console.log(`  ${alias}: ${count}次`);
-    }
-  }
+  //   for (const [alias, count] of sortedAliases) {
+  //     console.log(`  ${alias}: ${count}次`);
+  //   }
+  // }
 }
 
 module.exports = {

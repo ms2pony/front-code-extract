@@ -69,7 +69,7 @@ function ensureDir(dirPath) {
  * @param {string} point - 执行点 (start/end)
  * @param {Object} contexts - 上下文参数
  */
-function executeCreateHooks(planName, point, contexts) {
+function executeCreateHooks(planName, phase, point, contexts) {
   try {
     console.log(`\n🔗 执行 ${point} 阶段的 hooks...`);
     
@@ -79,9 +79,8 @@ function executeCreateHooks(planName, point, contexts) {
       return;
     }
     
-    // 筛选出 phase='create' 且 point 匹配的 hooks
     const createHooks = plan.plans.filter(p => 
-      p.phase === 'create' && p.point === point && p.hook
+      p.phase === phase && p.point === point && p.hook
     );
     
     if (createHooks.length === 0) {
@@ -145,7 +144,7 @@ function main() {
   ];
   
   try{
-    executeCreateHooks('eui', 'start', hookContexts);
+    executeCreateHooks('eui','create', 'start', hookContexts);
   }catch(error){
     logger.error('执行创建阶段开始时的hooks失败', error.message)
     return

@@ -8,7 +8,8 @@ const config = {
   // 入口文件路径，支持字符串或数组
   entryFile: [
     "J:\\gitlab\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js",
-    "J:\\gitlab\\ifs-eui\\src\\modules\\common\\src\\layout\\portal\\index.vue"
+    "J:\\gitlab\\ifs-eui\\src\\modules\\common\\src\\layout\\portal\\index.vue",
+    "J:\\gitlab\\ifs-eui\\src\\modules\\tender\\views\\pay\\purchaser-pay-edit.vue"
   ],
   
   // 项目根目录
@@ -27,11 +28,11 @@ const config = {
   },
 
   // 得到依赖关系后是重新创建新项目还是合并到老项目 1-重新创建 2-创建新项目然后再合并到老项目
-  secondCreateOrMerge: 2,
+  secondCreateOrMerge: 1,
 
   createOption:{
     // 新项目路径
-    targetProjectPath:'K:\\front-code-extract\\analyzer\\output\\eui-pay-edit-part',
+    targetProjectPath:'K:\\front-code-extract\\analyzer\\output\\eui-pay-core',
     dropIfExists:false,
   }
 };
