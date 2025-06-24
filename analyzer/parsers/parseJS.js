@@ -6,7 +6,12 @@ const path = require('path')
 
 module.exports = function parseJS(code, ctx, stack, file) {
   if (!code || !code.trim()) return;
-  const ast = babel.parse(code, { sourceType: 'unambiguous', plugins: ['typescript', 'jsx'] });
+  const ast = babel.parse(code, 
+    { sourceType: 
+      // 'unambiguous', 
+      'module', //用module试试，看会不会有问题
+      plugins: ['typescript', 'jsx'] }
+  );
   traverse(ast, {
     ImportDeclaration({ node }) {
       push(node.source.value, ctx, stack,file);
