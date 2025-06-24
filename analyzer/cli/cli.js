@@ -1,18 +1,17 @@
 
 // #!/usr/bin/env node
 const path = require('path');
-const fs = require('fs');
 const collectDeps = require('../collector/collectDeps');
 const { setAliasRoot } = require('../resolve');
 const { generateReport, outputToFiles } = require('../stats/output');
-const ConfigPath = require('../config/config-path');
-const Logger = require('../config/logger');
+const Logger = require('../utils/logger');
+const ConfigPath = require('../utils/config-path');
 
 const logger = new Logger();
 
 // 读取配置文件
 function loadConfig() {
-  return ConfigPath.loadConfig();
+  return ConfigPath.loadCliConfig();
 }
 
 (async () => {

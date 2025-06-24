@@ -1,14 +1,15 @@
-const fs = require('fs');
 const path = require('path');
-const ConfigPath = require('../../config/config-path');
-const Logger = require('../../config/logger');
-const logger = new Logger();
 const FileUtils = require('../../utils/file-utils');
+const Logger = require('../../utils/logger');
+const ConfigPath = require('../../utils/config-path');
+const getPlan = require('../../hooks/index');
+
+const logger = new Logger();
 
 // 加载配置文件
 function loadConfig() {
   try {
-    const config = ConfigPath.loadConfig();
+    const config = ConfigPath.loadCliConfig();
     return config || {};
   } catch (error) {
     logger.warn('无法加载配置文件，使用默认配置');
@@ -62,19 +63,58 @@ function ensureDir(dirPath) {
   FileUtils.directory.ensure(dirPath);
 }
 
-// 复制文件
-function copyFile(src, dest) {
-  FileUtils.file.copy(src, dest);
-}
-
-// 复制目录
-function copyDirectory(src, dest) {
-  FileUtils.batch.copyDirectory(src, dest);
-}
-
-// 复制目录下的文件（不包含子目录）
-function copyDirectoryFilesOnly(src, dest) {
-  FileUtils.batch.copyDirectoryFilesOnly(src, dest);
+/**
+ * 执行创建阶段的hooks
+ * @param {string} planName - 脚手架计划名称
+ * @param {string} point - 执行点 (start/end)
+ * @param {Object} contexts - 上下文参数
+ */
+function executeCreateHooks(planName, point, contexts) {
+  try {
+    console.log(`\n🔗 执行 ${point} 阶段的 hooks...`);
+    
+    const plan = getPlan(planName);
+    if (!plan || !plan.plans) {
+      console.log(`未找到脚手架计划: ${planName}`);
+      return;
+    }
+    
+    // 筛选出 phase='create' 且 point 匹配的 hooks
+    const createHooks = plan.plans.filter(p => 
+      p.phase === 'create' && p.point === point && p.hook
+    );
+    
+    if (createHooks.length === 0) {
+      console.log(`没有找到 ${point} 阶段的 hooks`);
+      return;
+    }
+    
+    console.log(`找到 ${createHooks.length} 个 ${point} 阶段的 hooks`);
+    
+    // 依次执行 hooks
+    for (let index = 0; index < createHooks.length; index++) {
+      const hookConfig = createHooks[index];
+      
+      console.log(`\n📌 执行 hook ${index + 1}/${createHooks.length}: ${hookConfig.name}`);
+      
+      const result = hookConfig.hook({
+        ...contexts[index],
+        ...hookConfig.arguments
+      });
+      
+      if (result && result.success === false) {
+        const errorMsg = `Hook ${hookConfig.name} 执行失败: ${result.error || result.message}`;
+        console.error(`❌ ${errorMsg}`);
+        throw new Error(errorMsg);
+      } else {
+        console.log(`✅ Hook ${hookConfig.name} 执行成功`);
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ 执行 hooks 时发生错误:', error.message);
+    throw error
+  }
 }
 
 // 主函数
@@ -86,61 +126,50 @@ function main() {
   try {
     cleanTargetDirectory(newProjectPath);
   } catch (error) {
-    console.error('清理目标目录失败',error.message);
+    console.error('清理目标目录失败', error.message);
     process.exit(1);
   }
-  
-  // 获取原项目根路径
-  const originalProjectRoot = FileUtils.utils.extractProjectRoot(fileListPath);
-  console.log(`原项目根路径: ${originalProjectRoot}`);
   
   // 创建新项目目录
   ensureDir(newProjectPath);
   
-  // 1. 复制原项目根目录下的所有文件（不包括目录）
-  console.log('\n📁 复制根目录文件...');
-  try {
-    const rootItems = fs.readdirSync(originalProjectRoot);
-    rootItems.forEach(item => {
-      const srcPath = path.join(originalProjectRoot, item);
-      const destPath = path.join(newProjectPath, item);
-      
-      if (fs.statSync(srcPath).isFile()) {
-        copyFile(srcPath, destPath);
-      }
-    });
-  } catch (error) {
-    console.error('复制根目录文件失败:', error.message);
+  // 执行创建阶段开始时的 hooks
+  const hookContexts = [
+    {
+      newProjectPath,
+      fileListPath,
+    },
+    {
+      newProjectPath,
+    }
+  ];
+  
+  try{
+    executeCreateHooks('eui', 'start', hookContexts);
+  }catch(error){
+    logger.error('执行创建阶段开始时的hooks失败', error.message)
+    return
   }
   
-  // 2. 复制 public 目录
-  console.log('\n📁 复制 public 目录...');
-  const publicSrc = path.join(originalProjectRoot, 'public');
-  const publicDest = path.join(newProjectPath, 'public');
-  copyDirectory(publicSrc, publicDest);
-  
-  // 3. 复制 src/router 目录
-  console.log('\n📁 复制 src/router 目录...');
-  const routerSrc = path.join(originalProjectRoot, 'src', 'router');
-  const routerDest = path.join(newProjectPath, 'src', 'router');
-  copyDirectory(routerSrc, routerDest);
-  
-  // 4. 复制 src 目录下的所有文件（不包含子文件夹）
-  console.log('\n📄 复制 src 目录下的文件...');
-  const srcDir = path.join(originalProjectRoot, 'src');
-  const destSrcDir = path.join(newProjectPath, 'src');
-  copyDirectoryFilesOnly(srcDir, destSrcDir);
-  
-  // 5. 根据文件列表复制相关文件
-  console.log('\n📄 根据文件列表复制文件...');
-  try {
-    const fileList = FileUtils.file.read(fileListPath).split('\n').filter(line => line.trim());
-    const stats = FileUtils.batch.copyFromList(fileList, originalProjectRoot, newProjectPath);
-    console.log(`\n📊 复制统计:`);
-    console.log(`✓ 成功复制: ${stats.copied} 个文件`);
-    console.log(`✗ 失败/跳过: ${stats.failed} 个文件`);
-  } catch (error) {
-    console.error('处理文件列表失败:', error.message);
+  // 根据文件列表复制相关文件（如果需要的话）
+  if (FileUtils.file.exists(fileListPath)) {
+    console.log('\n📄 根据文件列表复制额外文件...');
+    try {
+      // 获取原项目根路径
+      const originalProjectRoot = FileUtils.utils.extractProjectRoot(fileListPath);
+      console.log(`原项目根路径: ${originalProjectRoot}`);
+      
+      const fileList = FileUtils.file.read(fileListPath).split('\n').filter(line => line.trim());
+      const stats = FileUtils.batch.copyFromList(fileList, originalProjectRoot, newProjectPath);
+      console.log(`\n📊 额外文件复制统计:`);
+      console.log(`✓ 成功复制: ${stats.copied} 个文件`);
+      console.log(`⚠ 跳过: ${stats.skipped} 个文件`);
+      console.log(`✗ 失败: ${stats.failed} 个文件`);
+    } catch (error) {
+      console.error('处理文件列表失败:', error.message);
+    }
+  } else {
+    console.log('\n⚠ 未找到文件列表，跳过额外文件复制');
   }
   
   console.log('\n🎉 项目创建完成!');

@@ -1,14 +1,14 @@
 const fs = require("fs");
 const path = require("path");
-const ConfigPath = require("../../config/config-path");
-const Logger = require("../../config/logger");
-const logger = new Logger();
 const FileUtils = require("../../utils/file-utils");
+const Logger = require("../../utils/logger");
+const ConfigPath = require("../../utils/config-path");
 
+const logger = new Logger();
 // 加载配置文件
 function loadConfig() {
   try {
-    const config = ConfigPath.loadConfig();
+    const config = ConfigPath.loadCliConfig();
     return config.mergeOption || {};
   } catch (error) {
     logger.warn("无法加载配置文件，使用默认配置");
