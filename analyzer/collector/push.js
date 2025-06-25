@@ -2,6 +2,7 @@ const { resolvePath } = require('../resolve');
 const { addResolution, addFailedResolution } = require('../stats/resolve-stats');
 const { routeTracker, RouteTracker } = require('../hooks/route-tracker');
 const { barrelTracker, BarrelTracker } = require('../hooks/barrel-tracker');
+const { contextTracker, ContextTracker } = require('../hooks/context-tracker'); // 新增
 
 /**
  * 
@@ -15,9 +16,6 @@ const { barrelTracker, BarrelTracker } = require('../hooks/barrel-tracker');
 module.exports = function push(request, ctx, stack, file, symbolInfo = null) {
   try {
     const result = resolvePath(ctx, request);
-
-    // 1.这里解析result，如果依赖文件是路由文件，则溯源其引用文件
-    // 2.保存该依赖文件(路由文件)
     
     if (!result || !result.resolvedPath) {
       addFailedResolution(request, ctx, result?.error);
@@ -40,6 +38,44 @@ module.exports = function push(request, ctx, stack, file, symbolInfo = null) {
     }
 
     let finalResolvedPath = result.resolvedPath;
+    
+    // Context文件处理 - 新增
+    if (ContextTracker.isContextFile(result.resolvedPath) && symbolInfo && symbolInfo.symbols) {
+      console.log(`🔄 发现context文件: ${result.resolvedPath}`);
+      
+      const contextResult = contextTracker.resolveContextSymbols(result.resolvedPath, symbolInfo.symbols);
+      
+      if (contextResult.type === 'vue-install') {
+        // Vue install模式：处理所有install文件
+        const installFiles = contextTracker.getVueInstallFiles(result.resolvedPath);
+        installFiles.forEach(installFile => {
+          if (!installFile.includes('node_modules')) {
+            addResolution(result.originalRequest + '[vue-install]', result.matchedAlias, installFile, ctx);
+            stack.push(installFile);
+          }
+        });
+        
+        // 处理Vue上挂载的符号
+        Object.entries(contextResult.symbolToFileMap).forEach(([symbol, filePath]) => {
+          if (!filePath.includes('node_modules')) {
+            addResolution(result.originalRequest + `[${symbol}]`, result.matchedAlias, filePath, ctx);
+            stack.push(filePath);
+          }
+        });
+        
+      } else if (contextResult.type === 'symbol-export') {
+        // 符号导出模式：处理具体符号
+        symbolInfo.symbols.forEach(symbol => {
+          if (symbol !== '*') {
+            const actualFilePath = contextTracker.getActualFilePath(result.resolvedPath, symbol);
+            if (actualFilePath && !actualFilePath.includes('node_modules')) {
+              addResolution(result.originalRequest + `[${symbol}]`, result.matchedAlias, actualFilePath, ctx);
+              stack.push(actualFilePath);
+            }
+          }
+        });
+      }
+    }
     
     // Barrel文件处理
     if (BarrelTracker.isBarrelFile(result.resolvedPath) && symbolInfo && symbolInfo.symbols) {
