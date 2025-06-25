@@ -65,8 +65,9 @@ function parseBarrel(barrelPath, importedSymbols) {
               // 记录默认导入映射
               importMap.set(localName, absoluteSourcePath);
               
-              if (symbols.includes(localName)) {
+              if (symbols.includes(localName) || symbols.includes('default')) {
                 symbolToFileMap[localName] = absoluteSourcePath;
+                symbolToFileMap['default'] = absoluteSourcePath;
               }
             }
           });
@@ -126,6 +127,44 @@ function parseBarrel(barrelPath, importedSymbols) {
             const exportedName = node.declaration.id.name;
             if (symbols.includes(exportedName)) {
               symbolToFileMap[exportedName] = barrelPath;
+            }
+          }
+        }
+      },
+      
+      // 处理 export * from './path' (需要进一步解析)
+      ExportAllDeclaration({ node }) {
+        if (node.source) {
+          const sourcePath = node.source.value;
+          const absoluteSourcePath = resolveSourcePath(sourcePath);
+          
+          // 对于export *，我们需要递归解析目标文件
+          symbols.forEach(symbol => {
+            if (!symbolToFileMap[symbol]) {
+              symbolToFileMap[symbol] = absoluteSourcePath;
+            }
+          });
+        }
+      },
+      
+      // 新增：处理 export default 语句
+      ExportDefaultDeclaration({ node }) {
+        if (symbols.includes('default')) {
+          if (node.declaration) {
+            if (node.declaration.type === 'Identifier') {
+              // export default SomeVariable
+              const localName = node.declaration.name;
+              const sourcePath = importMap.get(localName);
+              if (sourcePath) {
+                // 如果是从其他文件导入的变量，指向源文件
+                symbolToFileMap['default'] = sourcePath;
+              } else {
+                // 如果是当前文件的变量，指向当前文件
+                symbolToFileMap['default'] = barrelPath;
+              }
+            } else {
+              // export default function/class/object literal
+              symbolToFileMap['default'] = barrelPath;
             }
           }
         }

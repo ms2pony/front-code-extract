@@ -43,14 +43,17 @@ module.exports = function push(request, ctx, stack, file, symbolInfo = null) {
     
     // Barrel文件处理
     if (BarrelTracker.isBarrelFile(result.resolvedPath) && symbolInfo && symbolInfo.symbols) {
-      console.log(`📦 发现barrel文件: ${result.resolvedPath}`);
+      // console.log(`📦 发现barrel文件: ${result.resolvedPath}`);
+      // if(result.resolvedPath ==='J:\\gitlab\\ifs-eui\\src\\modules\\tender\\service\\pay\\index.js'){
+      //   console.log("有问题文件定位",symbolInfo.symbols,file)
+      // }
       
       // 对于每个导入的符号，尝试找到实际的文件
       symbolInfo.symbols.forEach(symbol => {
         if (symbol !== '*') { // 跳过namespace导入
           const actualFilePath = barrelTracker.getActualFilePath(result.resolvedPath, symbol);
           if (actualFilePath) {
-            console.log(`  🎯 符号 '${symbol}' 映射到: ${actualFilePath}`);
+            // console.log(`  🎯 符号 '${symbol}' 映射到: ${actualFilePath}`);
             // 检查实际文件路径是否是 node_modules（双重保险）
             const actualFileIsNodeModules = actualFilePath.includes('node_modules');
             if (!actualFileIsNodeModules) {
