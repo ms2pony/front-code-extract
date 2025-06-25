@@ -66,6 +66,7 @@ function ensureDir(dirPath) {
 /**
  * 执行创建阶段的hooks
  * @param {string} planName - 脚手架计划名称
+ * @param {string} phase - 执行阶段 (create/alias)
  * @param {string} point - 执行点 (start/end)
  * @param {Object} contexts - 上下文参数
  */

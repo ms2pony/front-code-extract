@@ -39,7 +39,7 @@ module.exports = async function parseVue(code, ctx, stack, file) {
         req.startsWith('#') ||
         req.startsWith('mailto:')
       ) return; // ❌ 忽略非资源引用
-      push(req, ctx, stack,file);
+      push(req, ctx, stack, file); // 模板中的资源引用通常不涉及符号
     });
   }
 
