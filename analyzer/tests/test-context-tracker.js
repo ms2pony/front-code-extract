@@ -15,8 +15,8 @@ class ContextTrackerTest {
     
     // 运行各种测试
     // this.testIsContextFile();
-    this.testVueInstallMode();
-    this.testSymbolExportMode();
+    // this.testVueInstallMode();
+    // this.testSymbolExportMode();
     this.testContextTracker();
     
     // 清理测试文件
@@ -99,7 +99,7 @@ export default {
     const symbolExportContent = `
 import { importAll } from "@common/common/utils"
 
-const context = require.context("./", false, /\.vue$/)
+const context = require.context("./", true, /\.vue$/)
 export default importAll(context)
 `;
     
@@ -235,7 +235,10 @@ export default importAll(context)
     console.log('测试importAll模式:');
     console.log(`文件: ${symbolExportFile}`);
     
-    const result = parseContext(symbolExportFile, ['ComponentA', 'ComponentB', '*']);
+    const result = parseContext(symbolExportFile, [
+      'ComponentA', 'ComponentB'
+      // , '*'
+    ]);
     console.log(`类型: ${result.type}`);
     console.log(`符号映射数量: ${Object.keys(result.symbolToFileMap).length}`);
     

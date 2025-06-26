@@ -62,6 +62,8 @@ module.exports = function push(request, ctx, stack, file, symbolInfo = null) {
             stack.push(filePath);
           }
         });
+        // 添加 return 避免重复入栈
+        return
         
       } else if (contextResult.type === 'symbol-export') {
         // 符号导出模式：处理具体符号
@@ -74,6 +76,8 @@ module.exports = function push(request, ctx, stack, file, symbolInfo = null) {
             }
           }
         });
+        // 添加 return 避免重复入栈
+        return;
       }
     }
     
