@@ -23,7 +23,6 @@ module.exports = {
     '@print': 'src/modules/print',
     '@shb': 'src/modules/shb',
     '@workflow/assets': 'src/modules/workflow/src/assets',
-    '@workflow': 'src/modules/workflow',
 
     // 从federation转换的app模块alias
     '@app/router/router': 'src/router/router',
@@ -263,6 +262,7 @@ module.exports = {
     '@workflow/components/form-design/util': 'src/modules/workflow/src/components/form-design/util',
     '@workflow/components/form-design/constants/components-data-enum': 'src/modules/workflow/src/components/form-design/constants/components-data-enum',
     '@workflow/service/approval-app': 'src/modules/workflow/src/service/approval-app',
+    '@workflow': 'src/modules/workflow',
     
   },
   extensions: ['.vue', '.js', '.ts', '.json', '.scss', '.css', '.less', '.png', ],

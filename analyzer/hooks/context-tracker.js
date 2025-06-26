@@ -66,6 +66,33 @@ class ContextTracker {
     const result = this.resolveContextSymbols(contextPath, ['*']);
     return result.vueInstallFiles || [];
   }
+
+  /**
+   * 获取context文件中的所有相关文件
+   * @param {string} contextPath - context文件路径
+   * @returns {string[]} - 所有相关文件路径列表
+   */
+  getAllContextFiles(contextPath) {
+      const result = this.resolveContextSymbols(contextPath, ['*']);
+      
+      if (result.type === 'vue-install') {
+        // Vue install模式，返回所有Vue install文件
+        return result.vueInstallFiles || [];
+      } else if (result.type === 'symbol-export') {
+        // Symbol export模式，返回所有映射的文件
+        return Object.values(result.symbolToFileMap || {});
+      } else {
+        // 其他情况，尝试返回所有可能的文件
+        const allFiles = [];
+        if (result.vueInstallFiles) {
+          allFiles.push(...result.vueInstallFiles);
+        }
+        if (result.symbolToFileMap) {
+          allFiles.push(...Object.values(result.symbolToFileMap));
+        }
+        return [...new Set(allFiles)]; // 去重
+      }
+    }
   
   /**
    * 获取context类型

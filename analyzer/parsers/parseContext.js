@@ -40,7 +40,7 @@ function parseContext(contextFilePath, importedSymbols) {
     traverse(ast, {
       // 检测export default模式中的install方法
       ExportDefaultDeclaration({ node }) {
-        console.log("Export入口");
+        // console.log("Export入口");
         if (node.declaration.type === "ObjectExpression") {
           // 检查是否有install方法
           const hasInstall = node.declaration.properties.some(
@@ -63,7 +63,7 @@ function parseContext(contextFilePath, importedSymbols) {
         // 检查是否是install函数
         if (parent.type === "Property" && parent.key.name === "install") {
           // 在install函数体内查找require.context调用
-          console.log("进到FunctionExpression -- vue install里面");
+          // console.log("进到FunctionExpression -- vue install里面");
           traverse(
             node,
             {
@@ -189,7 +189,7 @@ function parseContext(contextFilePath, importedSymbols) {
           contextCall.recursive,
           contextCall.regExp
         );
-        console.log("vue-install - files", files);
+        // console.log("vue-install - files", files);
         result.vueInstallFiles = files;
 
         // 分析每个文件，使用类似FileUtil.name的逻辑解析符号
@@ -206,7 +206,7 @@ function parseContext(contextFilePath, importedSymbols) {
           contextCall.regExp
         );
 
-        console.log("循环前symbols检查",symbols)
+        // console.log("循环前symbols检查",symbols)
         for (const file of files) {
           const fileName = getFileNameWithoutExtension(file);
           const componentName = transformComponentName(fileName);
@@ -268,7 +268,7 @@ function scanContextFiles(contextPath, recursive, regExpStr) {
       // console.log("scanDir -> ", contextPath, recursive, regExpStr);
 
       const entries = fs.readdirSync(dir);
-      console.log("scanDir -> entries", entries);
+      // console.log("scanDir -> entries", entries);
 
       for (const entry of entries) {
         const fullPath = path.join(dir, entry);

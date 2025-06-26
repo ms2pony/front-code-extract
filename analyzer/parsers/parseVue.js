@@ -45,6 +45,7 @@ module.exports = async function parseVue(code, ctx, stack, file) {
 
   // styles
   for (const style of descriptor.styles) {
-    await parseCSS(style.content, ctx, stack);
+    const lang = style.lang || 'css'; // 获取 style 标签的 lang 属性
+    await parseCSS(style.content, ctx, stack, file, lang);
   }
 };

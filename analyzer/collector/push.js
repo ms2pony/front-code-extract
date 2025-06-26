@@ -40,43 +40,80 @@ module.exports = function push(request, ctx, stack, file, symbolInfo = null) {
     let finalResolvedPath = result.resolvedPath;
     
     // Context文件处理 - 新增
-    if (ContextTracker.isContextFile(result.resolvedPath) && symbolInfo && symbolInfo.symbols) {
-      console.log(`🔄 发现context文件: ${result.resolvedPath}`);
+    if (ContextTracker.isContextFile(result.resolvedPath)) {
+      // console.log(`🔄 发现context文件: ${result.resolvedPath}`);
       
-      const contextResult = contextTracker.resolveContextSymbols(result.resolvedPath, symbolInfo.symbols);
-      
-      if (contextResult.type === 'vue-install') {
-        // Vue install模式：处理所有install文件
-        const installFiles = contextTracker.getVueInstallFiles(result.resolvedPath);
-        installFiles.forEach(installFile => {
-          if (!installFile.includes('node_modules')) {
-            addResolution(result.originalRequest + '[vue-install]', result.matchedAlias, installFile, ctx);
-            stack.push(installFile);
-          }
-        });
+      // 检查是否有符号信息
+      if (symbolInfo && symbolInfo.symbols && symbolInfo.symbols.length > 0) {
+        // 有符号导入的情况（原有逻辑）
+        const contextResult = contextTracker.resolveContextSymbols(result.resolvedPath, symbolInfo.symbols);
         
-        // 处理Vue上挂载的符号
-        Object.entries(contextResult.symbolToFileMap).forEach(([symbol, filePath]) => {
-          if (!filePath.includes('node_modules')) {
-            addResolution(result.originalRequest + `[${symbol}]`, result.matchedAlias, filePath, ctx);
-            stack.push(filePath);
-          }
-        });
-        // 添加 return 避免重复入栈
-        return
-        
-      } else if (contextResult.type === 'symbol-export') {
-        // 符号导出模式：处理具体符号
-        symbolInfo.symbols.forEach(symbol => {
-          if (symbol !== '*') {
-            const actualFilePath = contextTracker.getActualFilePath(result.resolvedPath, symbol);
-            if (actualFilePath && !actualFilePath.includes('node_modules')) {
-              addResolution(result.originalRequest + `[${symbol}]`, result.matchedAlias, actualFilePath, ctx);
-              stack.push(actualFilePath);
+        if (contextResult.type === 'vue-install') {
+          // Vue install模式：处理所有install文件
+          const installFiles = contextTracker.getVueInstallFiles(result.resolvedPath);
+          installFiles.forEach(installFile => {
+            if (!installFile.includes('node_modules')) {
+              addResolution(result.originalRequest + '[vue-install]', result.matchedAlias, installFile, ctx);
+              stack.push(installFile);
             }
-          }
-        });
-        // 添加 return 避免重复入栈
+          });
+          
+          // 处理Vue上挂载的符号
+          Object.entries(contextResult.symbolToFileMap).forEach(([symbol, filePath]) => {
+            if (!filePath.includes('node_modules')) {
+              addResolution(result.originalRequest + `[${symbol}]`, result.matchedAlias, filePath, ctx);
+              stack.push(filePath);
+            }
+          });
+          return;
+          
+        } else if (contextResult.type === 'symbol-export') {
+          // 符号导出模式：处理具体符号
+          symbolInfo.symbols.forEach(symbol => {
+            if (symbol !== '*') {
+              const actualFilePath = contextTracker.getActualFilePath(result.resolvedPath, symbol);
+              if (actualFilePath && !actualFilePath.includes('node_modules')) {
+                addResolution(result.originalRequest + `[${symbol}]`, result.matchedAlias, actualFilePath, ctx);
+                stack.push(actualFilePath);
+              }
+            }
+          });
+          return;
+        }
+      } else {
+        // 无符号导入的情况（新增逻辑）- 处理副作用导入
+        console.log(`🔄 处理无符号context文件: ${result.resolvedPath}`);
+        
+        // 解析context文件，获取所有相关文件
+        const contextResult = contextTracker.resolveContextSymbols(result.resolvedPath, ['*']); // 使用通配符获取所有文件
+        
+        if (contextResult.type === 'vue-install') {
+          // Vue install模式：处理所有install文件
+          const installFiles = contextTracker.getVueInstallFiles(result.resolvedPath);
+          installFiles.forEach(installFile => {
+            if (!installFile.includes('node_modules')) {
+              addResolution(result.originalRequest + '[vue-install-all]', result.matchedAlias, installFile, ctx);
+              stack.push(installFile);
+            }
+          });
+          
+          // 处理Vue上挂载的所有符号
+          Object.entries(contextResult.symbolToFileMap).forEach(([symbol, filePath]) => {
+            if (!filePath.includes('node_modules')) {
+              addResolution(result.originalRequest + `[${symbol}]`, result.matchedAlias, filePath, ctx);
+              stack.push(filePath);
+            }
+          });
+        } else {
+          // 其他类型的context文件，获取所有相关文件
+          const allFiles = contextTracker.getAllContextFiles(result.resolvedPath);
+          allFiles.forEach(filePath => {
+            if (!filePath.includes('node_modules')) {
+              addResolution(result.originalRequest + '[context-all]', result.matchedAlias, filePath, ctx);
+              stack.push(filePath);
+            }
+          });
+        }
         return;
       }
     }
@@ -120,7 +157,6 @@ module.exports = function push(request, ctx, stack, file, symbolInfo = null) {
     
     stack.push(finalResolvedPath);
   } catch (e) {
-    console.log("xxx解析路径失败",e)
     addFailedResolution(request, ctx, e);
   }
 };

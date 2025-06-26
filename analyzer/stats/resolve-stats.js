@@ -3,7 +3,8 @@ const resolveStats = {
   aliasMatches: new Map(), // alias -> count
   totalResolutions: 0,
   failedResolutions: 0,
-  detailedLogs: [] // 存储详细的解析日志
+  detailedLogs: [], // 存储详细的解析日志
+  modules: [] // 存储涉及到的模块列表
 };
 
 function resetStats() {
@@ -11,6 +12,7 @@ function resetStats() {
   resolveStats.totalResolutions = 0;
   resolveStats.failedResolutions = 0;
   resolveStats.detailedLogs = [];
+  resolveStats.modules = [];
 }
 
 function addResolution(originalRequest, matchedAlias, resolvedPath, ctx) {
@@ -25,6 +27,17 @@ function addResolution(originalRequest, matchedAlias, resolvedPath, ctx) {
   };
   
   resolveStats.detailedLogs.push(logEntry);
+  
+  // 检测模块路径并添加到modules列表
+  if (resolvedPath) {
+    const moduleMatch = resolvedPath.match(/src[\\/]modules[\\/]([^\\/]+)/);
+    if (moduleMatch) {
+      const moduleName = moduleMatch[1];
+      if (!resolveStats.modules.includes(moduleName)) {
+        resolveStats.modules.push(moduleName);
+      }
+    }
+  }
   
   if (matchedAlias) {
     const alias = matchedAlias.alias;

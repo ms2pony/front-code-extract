@@ -9,7 +9,8 @@ const config = {
   entryFile: [
     "J:\\gitlab\\ifs-eui\\src\\modules\\common\\src\\extension\\index.js",
     "J:\\gitlab\\ifs-eui\\src\\modules\\common\\src\\layout\\portal\\index.vue",
-    "J:\\gitlab\\ifs-eui\\src\\modules\\tender\\views\\pay\\purchaser-pay-edit.vue"
+    "J:\\gitlab\\ifs-eui\\src\\modules\\tender\\views\\pay\\purchaser-pay-edit.vue",
+    "J:\\gitlab\\ifs-eui\\src\\bootstrap.js",
   ],
   
   // 项目根目录
