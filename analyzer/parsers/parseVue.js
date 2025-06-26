@@ -37,7 +37,12 @@ module.exports = async function parseVue(code, ctx, stack, file) {
       if (
         req.startsWith('javascript:') ||
         req.startsWith('#') ||
-        req.startsWith('mailto:')
+        req.startsWith('mailto:') ||
+        req.startsWith('/') ||  // 过滤掉以/开头的路径（网站路径）
+        req.startsWith('http://') ||  // 过滤掉http链接
+        req.startsWith('https://') ||  // 过滤掉https链接
+        req.startsWith('tel:') ||  // 过滤掉电话链接
+        req.startsWith('ftp://')  // 过滤掉ftp链接
       ) return; // ❌ 忽略非资源引用
       push(req, ctx, stack, file); // 模板中的资源引用通常不涉及符号
     });

@@ -1,6 +1,12 @@
 {
   "name": "vue-deps-analyzer",
   "version": "0.1.0",
+  "scripts": {
+    "analyze": "node cli/cli.js",
+    "start": "node cli/cli.js",
+    "test": "node tests/test-route-comp.js",
+    "test:all": "node tests/test-route-tracker.js && node tests/test-context-tracker.js && node tests/test-route-comp.js"
+  },
   "dependencies": {
     "@babel/parser": "^7.24.0",
     "@babel/traverse": "^7.24.0",

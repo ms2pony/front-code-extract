@@ -52,9 +52,9 @@ function normalizeRequest(request, ctx) {
     );
   }
 
-  if(cleaned==='@auth/assets/style/components/var'){
-    console.log("normalizeRequest -- finall candidates", candidates)
-  }
+  // if(cleaned==='@auth/assets/style/components/var'){
+  //   console.log("normalizeRequest -- finall candidates", candidates)
+  // }
 
   // 使用 resolvePath 逐个尝试候选路径
   for (const candidate of candidates) {

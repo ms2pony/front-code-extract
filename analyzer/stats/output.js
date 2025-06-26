@@ -96,7 +96,7 @@ function getFileStats(deps) {
   return stats;
 }
 
-// 生成报告内容 - 修改为支持多入口文件
+// 生成报告内容 - 修改为支持多入口文件和路由文件统计
 function generateReport(deps, entries, projectRoot, aliasStats = null) {
   const stats = getFileStats(deps);
   const tree = generateFileTree(deps, projectRoot);
@@ -104,6 +104,10 @@ function generateReport(deps, entries, projectRoot, aliasStats = null) {
   
   // 确保entries是数组格式
   const entryArray = Array.isArray(entries) ? entries : [entries];
+  
+  // 获取路由文件列表
+  const { getRouteFiles } = require('./resolve-stats');
+  const routeFiles = getRouteFiles();
   
   const report = {
     summary: {
@@ -127,6 +131,14 @@ function generateReport(deps, entries, projectRoot, aliasStats = null) {
         ((aliasStats.totalResolutions - aliasStats.failedResolutions) / aliasStats.totalResolutions * 100).toFixed(1) : '0',
       aliasUsage: Object.fromEntries(aliasStats.aliasMatches || new Map())
     } : null,
+    // 新增：路由文件统计
+    routeStatistics: {
+      totalRouteFiles: routeFiles.length,
+      routeFiles: routeFiles.map(routeFile => ({
+        absolute: routeFile,
+        relative: path.relative(projectRoot, routeFile)
+      }))
+    },
     fileTree: treeString,
     fileList: deps.map(dep => ({
       absolute: dep,

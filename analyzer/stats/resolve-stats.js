@@ -4,7 +4,8 @@ const resolveStats = {
   totalResolutions: 0,
   failedResolutions: 0,
   detailedLogs: [], // 存储详细的解析日志
-  modules: [] // 存储涉及到的模块列表
+  modules: [], // 存储涉及到的模块列表
+  routeFiles: new Set() // 新增：存储路由文件的绝对路径
 };
 
 function resetStats() {
@@ -13,6 +14,19 @@ function resetStats() {
   resolveStats.failedResolutions = 0;
   resolveStats.detailedLogs = [];
   resolveStats.modules = [];
+  resolveStats.routeFiles.clear(); // 清空路由文件列表
+}
+
+// 新增：添加路由文件到统计中
+function addRouteFile(routeFilePath) {
+  if (routeFilePath && typeof routeFilePath === 'string') {
+    resolveStats.routeFiles.add(routeFilePath);
+  }
+}
+
+// 新增：获取路由文件列表
+function getRouteFiles() {
+  return Array.from(resolveStats.routeFiles);
 }
 
 function addResolution(originalRequest, matchedAlias, resolvedPath, ctx) {
@@ -30,7 +44,7 @@ function addResolution(originalRequest, matchedAlias, resolvedPath, ctx) {
   
   // 检测模块路径并添加到modules列表
   if (resolvedPath) {
-    const moduleMatch = resolvedPath.match(/src[\\/]modules[\\/]([^\\/]+)/);
+    const moduleMatch = resolvedPath.match(/src[\\\/]modules[\\\/]([^\\\/]+)/);
     if (moduleMatch) {
       const moduleName = moduleMatch[1];
       if (!resolveStats.modules.includes(moduleName)) {
@@ -61,6 +75,12 @@ function printStats() {
   console.log(`失败次数: ${resolveStats.failedResolutions}`);
   console.log(`成功率: ${((resolveStats.totalResolutions - resolveStats.failedResolutions) / resolveStats.totalResolutions * 100).toFixed(1)}%`);
   
+  // 输出路由文件统计
+  if (resolveStats.routeFiles.size > 0) {
+    console.log(`\n🛣️ 路由文件统计:`);
+    console.log(`发现路由文件: ${resolveStats.routeFiles.size}个`);
+  }
+  
   // if (resolveStats.aliasMatches.size > 0) {
   //   console.log('\n🎯 Alias使用统计:');
   //   // 按使用次数降序排列
@@ -78,5 +98,7 @@ module.exports = {
   resetStats,
   addResolution,
   addFailedResolution,
+  addRouteFile, // 新增导出
+  getRouteFiles, // 新增导出
   printStats
 };

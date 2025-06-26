@@ -34,7 +34,7 @@ const config = {
   createOption:{
     // 新项目路径
     targetProjectPath:'K:\\front-code-extract\\analyzer\\output\\eui-pay-core',
-    dropIfExists:false,
+    dropIfExists:true,
   }
 };
 

@@ -64,24 +64,24 @@ module.exports = async function collectDeps(entries) {
   printStats();
   
   // 输出路由依赖信息
-  const routeStats = routeTracker.getStats();
-  if (routeStats.totalSourceFiles > 0) {
-    console.log('\n📍 路由依赖统计:');
-    console.log(`  - 引用路由的文件数: ${routeStats.totalSourceFiles}`);
-    console.log(`  - 被引用的路由文件数: ${routeStats.totalRouteFiles}`);
-    console.log(`  - 总引用次数: ${routeStats.totalReferences}`);
+  // const routeStats = routeTracker.getStats();
+  // if (routeStats.totalSourceFiles > 0) {
+  //   console.log('\n📍 路由依赖统计:');
+  //   console.log(`  - 引用路由的文件数: ${routeStats.totalSourceFiles}`);
+  //   console.log(`  - 被引用的路由文件数: ${routeStats.totalRouteFiles}`);
+  //   console.log(`  - 总引用次数: ${routeStats.totalReferences}`);
     
-    console.log('\n📍 详细路由引用关系:');
-    const allReferences = routeTracker.getAllRouteReferences();
-    for (const [sourceFile, routeFiles] of allReferences) {
-      console.log(`  ${sourceFile}:`);
-      routeFiles.forEach(routeFile => {
-        console.log(`    -> ${routeFile}`);
-      });
-    }
-  } else {
-    console.log('\n📍 未发现路由文件引用关系');
-  }
+  //   console.log('\n📍 详细路由引用关系:');
+  //   const allReferences = routeTracker.getAllRouteReferences();
+  //   for (const [sourceFile, routeFiles] of allReferences) {
+  //     console.log(`  ${sourceFile}:`);
+  //     routeFiles.forEach(routeFile => {
+  //       console.log(`    -> ${routeFile}`);
+  //     });
+  //   }
+  // } else {
+  //   console.log('\n📍 未发现路由文件引用关系');
+  // }
   
   // 返回依赖列表和统计信息
   return {

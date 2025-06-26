@@ -2,6 +2,8 @@
  * 辅助route-comp，查看哪些文件引用了路由信息
  */
 
+const { addRouteFile } = require('../stats/resolve-stats'); // 新增导入
+
 class RouteTracker {
   constructor() {
     // key: 引用路由文件的文件路径, value: 依赖的路由文件数组
@@ -42,6 +44,8 @@ class RouteTracker {
     const routes = this.routeReferences.get(sourceFile);
     if (!routes.includes(routeFile)) {
       routes.push(routeFile);
+      // 新增：将路由文件添加到统计中
+      addRouteFile(routeFile);
     }
   }
 

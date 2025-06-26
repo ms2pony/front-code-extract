@@ -171,6 +171,30 @@ function main() {
   } else {
     console.log('\n⚠ 未找到文件列表，跳过额外文件复制');
   }
+
+    // 处理路由文件，替换组件导入为mock组件
+  console.log('\n🔄 处理路由组件...');
+  try {
+    const RouteComponentProcessor = require('../../hooks/route-comp');
+    const mockComponentPath = RouteComponentProcessor.getDefaultMockComponentPath(newProjectPath);
+    console.log("11")
+    
+    // 检查mock组件是否存在
+    if (FileUtils.file.exists(mockComponentPath)) {
+      const routeProcessResult = RouteComponentProcessor.processAllRoutes(newProjectPath, mockComponentPath);
+      
+      if (routeProcessResult.total > 0) {
+        console.log(`\n📊 路由组件处理完成:`);
+        console.log(`✓ 成功: ${routeProcessResult.success} 个文件`);
+        console.log(`✗ 失败: ${routeProcessResult.failed} 个文件`);
+      }
+    } else {
+      console.log('⚠ 未找到mock组件文件，跳过路由处理');
+    }
+  } catch (error) {
+    console.error('路由组件处理失败:', error.message);
+    logger.error('路由组件处理失败', error.message);
+  }
   
   console.log('\n🎉 项目创建完成!');
   console.log(`新项目位置: ${newProjectPath}\n`);
